@@ -349,7 +349,7 @@
       "Are you sure you want to reset the wireless settings?" : "",
       "Select Export Method" : "Izberi Izvozni Način",
       "You have no programs currently added. Tap the Add button on the top right corner to get started." : "Ni nobenega programa. Pritisnite Dodaj v zgornjem desnem kotu za začetek.",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Use Master" : "Uporabi Glavno Postajo",
       "Sunrise" : "Sončni vzhod",
       "Error: Start time must be prior to end time." : "Napaka: Začetek mora biti pred koncem.",

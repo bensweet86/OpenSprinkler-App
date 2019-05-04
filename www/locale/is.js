@@ -427,7 +427,7 @@
       "HTTP" : "",
       "Image" : "",
       "LOW" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "LCD Screen" : "",
       "Sep" : "Sep",
       "Invalid configuration" : "Ógild stilling",

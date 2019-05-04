@@ -440,7 +440,7 @@
       "Aug" : "Aug",
       "Sunday" : "Svētdiena",
       "Zero value excludes the station from the run-once program." : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Hungarian" : "Ungāru",
       "OpenSprinkler is rebooting now" : "OpenSprinkler veic restartu",
       "m" : "m",

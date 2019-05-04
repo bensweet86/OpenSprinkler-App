@@ -227,7 +227,7 @@
       "Do you want to continue?" : "Vuoi continuare?",
       "Characters remaining" : "Caratteri rimanenti",
       "Error retrieving log data. Please refresh to try again." : "Errore nel recupero dello storico salvato. Prova a fare un refresh",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Brightness" : "Luminosità",
       "Farsi" : "Farsi",
       "Ignore Rain" : "Ignora la pioggia",

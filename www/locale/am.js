@@ -137,7 +137,7 @@
       "Norwegian" : "ኖርዌኛ ",
       "Temp" : "ሙቀት ",
       "Characters remaining" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "deleted" : "ተሰርዟል ",
       "Do you wish to add this location to your cloud synced site list?" : "",
       "Stations:" : "ነጥቦች/ ጣቢያዎች ",

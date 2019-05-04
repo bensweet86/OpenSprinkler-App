@@ -23,7 +23,7 @@
       "Stations have been updated" : "",
       "Fixed" : "",
       "Run" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Are you sure you want to " : "",
       "Additional Start Times" : "",
       "Program" : "",

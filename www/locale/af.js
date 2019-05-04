@@ -453,7 +453,7 @@
       "Change" : "",
       "Amharic" : "Amharies",
       "Clear Log Data" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "End Time" : "Eindig Tyd",
       "Master Off Adjustment" : "",
       "Standard" : "",

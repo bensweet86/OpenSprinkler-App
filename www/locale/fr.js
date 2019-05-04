@@ -307,7 +307,7 @@
 >>>>>>> upstream/master
       "Continue" : "Continuer",
       "HIGH" : "ÉLEVÉ",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Auto Reconnect" : "Reconnexion Auto",
       "Russian" : "Russe",
       "Are you sure you want to reset the wireless settings?" : "Êtes-vous certain⋅e de vouloir remettre à zéro les paramètres Wifi ?",

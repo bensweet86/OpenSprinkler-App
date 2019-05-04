@@ -261,7 +261,7 @@
       "Weather Adjustment Update" : "Actualização Ajuste Meteorologico",
       "Program" : "Programa",
       "Tamil" : "Tamil",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "O algoritmo meteorológico usa OpenWeatherMaps em conjunto com o método selecionado para ajuste da percentagem de rega.",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "O algoritmo meteorológico usa OpenWeatherMaps em conjunto com o método selecionado para ajuste da percentagem de rega.",
       "To enable IFTTT, a Maker channel key is required which can be obtained from https://ifttt.com" : "O uso das facilidades da 'Weather Underground' requer uma chave API que pode ser obtida em",
       "Precip Today" : "Precipitação Hoje",
       "OpenSprinkler.com Login" : "Login do OpenSprinkler.com",

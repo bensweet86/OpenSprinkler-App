@@ -421,7 +421,7 @@
       "RF" : "RF",
       "Duration" : "Trvání",
       "Do you want to stop the currently running program?" : "Chcete zastavit aktuálně běžící program?",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Please enter your OpenSprinkler.com password. If you have recently changed your password, you may need to enter your previous password to decrypt the data." : "Prosím, zadejte svoje OpenSprinkler.com heslo. Pokud jste nedávno změnil heslo, budete muset zadat své předchozí heslo k dešifrování dat.",
       "Master Off Delay" : "Zpožděné vypnutí hlavní stanice",
       "GPIO Pin" : "GPIO Pin",

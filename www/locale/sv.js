@@ -155,7 +155,7 @@
       "Are you sure you want to delete all settings and return to the default settings?" : "Är du säker på att du vill radera alla inställningar och återgå till standardinställningarna?",
       "Unified firmware is now avaialble" : "Unified firmware är tillgänglig",
       "Username:" : "Användarnamn:",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Please re-enter password to try again." : "Skriv in lösenordet igen",
       "Refresh" : "Uppdatera",
       "Click here to enter a valid password to decrypt the data" : "Klicka här för att ange ett giltigt lösenord för att dekryptera data",

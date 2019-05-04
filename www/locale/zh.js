@@ -149,7 +149,7 @@
       "Program data is newer than the device firmware and cannot be imported" : "程序数据格式太新，当前软件版本无法支持导入。",
       "This site is not found in the currently synced site list but may be added now." : "这个地址在云同步列表中不存在，但你可以现在将它加入。",
       "Select which events to send to IFTTT for use in recipes." : "选择IFTTT通知事件类型",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Are you sure you want to restore the configuration?" : "是否重新保存配置文件？",
       "Test All Stations" : "测试所有浇水站",
       "Ignore Rain" : "忽略雨传感器？",

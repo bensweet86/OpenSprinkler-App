@@ -497,7 +497,7 @@
       "Run-once program" : "Jednorázový program",
       "Sat" : "Sob",
       "Current" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Click here to troubleshoot remote access issues" : "Kliknite sem pre odsledovanie problému s pripojením",
       "Back" : "Späť",
       "Zoom out" : "Oddialenie",

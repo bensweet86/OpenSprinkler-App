@@ -347,7 +347,7 @@
       "Last Weather Call" : "",
       "Jan" : "jan",
       "Basic Settings" : "Grunn instillinger",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Change" : "",
       "Run-once program has been scheduled" : "Egang programmet er planlagt",
       "NTP IP Address" : "NTP IP adresse",

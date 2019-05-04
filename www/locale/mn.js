@@ -264,7 +264,7 @@
       "Amharic" : "",
       "Internal (within app)" : "",
       "Last Weather Call" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Error: Interval days must be between 2 and 128." : "Алдаа: Интервал хоног 2 - 128 хооронд байх ёстой.",
       "Sequential" : "",
       "Oct" : "10 сар",

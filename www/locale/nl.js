@@ -504,7 +504,7 @@
       "Manual mode enabled" : "Manuele modus ingeschakeld",
       "Back" : "Terug",
       "Integrations" : "Integraties",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Saturday" : "Zaterdag",
       "Scheduled" : "Gepland",
       "Zoom in" : "Inzoomen",

@@ -399,7 +399,7 @@
       "Last Successful Weather Call" : "",
       "Backup restored to your device" : "",
       "remaining" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Stop All Stations" : "Остановить все станции",
       "(Changes Auto-Saved)" : "",
       "About" : "",

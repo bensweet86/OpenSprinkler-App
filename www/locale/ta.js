@@ -91,7 +91,7 @@
       "Clear Logs" : "பதிவுகளைத் துடை",
       "Weather-Based Restrictions" : "",
       "Select which events to send to IFTTT for use in recipes." : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Use your OpenSprinkler.com login and password to securely sync sites between all your devices." : "",
       "Program" : "நிர்ல்/திட்டம்",
       "Notifications" : "",

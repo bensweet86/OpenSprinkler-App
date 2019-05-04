@@ -326,7 +326,7 @@
       "run" : "",
       "Time" : "",
       "Are you sure you want to delete all settings and return to the default settings?" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Are you sure you want to reset the wireless settings?" : "",
       "App Version" : "",
       "Thai" : "",

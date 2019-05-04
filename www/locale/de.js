@@ -350,7 +350,7 @@
       "Enter a duration to manually run " : "Geben Sie eine Dauer für die manuelle Bewässerung ein",
       "Friday" : "Freitag",
       "Tuesday" : "Dienstag",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "Die Bewässerungszeit wird abhängig von der wetterspezifischen Methode prozentual angepasst.",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "Die Bewässerungszeit wird abhängig von der wetterspezifischen Methode prozentual angepasst.",
       "Sequential" : "Nacheinander",
       "Update did not complete." : "Aktualisierung nicht vollständig.",
       "Reboot OpenSprinkler" : "OpenSprinkler neu starten",

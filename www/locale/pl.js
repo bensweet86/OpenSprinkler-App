@@ -75,7 +75,7 @@
       "Clear Logs" : "Kasuj rejestr",
       "Update did not complete." : "Aktualizacja nie została ukończona.",
       "Relay pulsing is used for special situations where rapid pulsing is needed in the output with a range from 1 to 2000 milliseconds. A zero value disables the pulsing option." : "Pulsacja przekaźnika jest używana w szczególnych sytuacjach, gdy szybkie pulsowanie w zakresie od 1 do 2000 milisekund  jest potrzebne na wyjściu. Wartość 0 wyłącza opcję pulsacji.",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "Stopień nawadniania jest korygowany za pomocą kombinacji danych pogodowych z OpenWeatherMaps oraz wybranej metody.",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "Stopień nawadniania jest korygowany za pomocą kombinacji danych pogodowych z OpenWeatherMaps oraz wybranej metody.",
       "Settings have been saved" : "Ustawienia zostały zapisane",
       "Normally Open (Rain Sensor)" : "Normalnie rozwarty (czujnik deszczu)",
       "Jan" : "sty",

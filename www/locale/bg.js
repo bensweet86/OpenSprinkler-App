@@ -464,7 +464,7 @@
       "Total Runtime" : "",
       "Move right" : "Преместване дясно",
       "Sat" : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Not specified" : "Неопределено",
       "GPIO Pin" : "GPIO пин",
       "Start time cannot be greater than end time" : "",

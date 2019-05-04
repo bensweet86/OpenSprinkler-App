@@ -9,7 +9,7 @@
       "Rain Delay" : "השהיית גשם",
       "Flow Sensor" : "חיישן זרימה",
       "Password:" : "סיסמא:",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Site updated successfully" : "אתר עודכן בהצלחה",
       "Invalid configuration" : "הגדרה שגויה",
       "Are you sure you want to reset the wireless settings?" : "",

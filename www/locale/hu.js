@@ -94,7 +94,7 @@
       "Dec" : "Dec",
       "Are you sure you want to " : "Biztos, hogy",
       "Site deleted successfully" : "Oldal törlése sikeres",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Open Sprinkler IP:" : "Open Sprinkler IP cím:",
       "Day" : "Nap",
       "Back" : "Vissza",

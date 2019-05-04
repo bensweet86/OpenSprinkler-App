@@ -3,7 +3,7 @@
       "Programs" : "โปรแกรม",
       "Swedish" : "",
       "Wireless settings have been reset. Please follow the OpenSprinkler user manual on restoring connectivity." : "",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Sequential" : "",
       "Are you sure you want to clear ALL your log data?" : "",
       "View Changelog" : "",

@@ -240,7 +240,7 @@
       "Timeline" : "Timeline",
       "If the weather reports any condition suggesting rain, a rain delay is automatically issued using the below set delay duration." : "Kada je omogućeno automatsko kašnjenja zbog  kiše, provjera  kiše će biti  svakih sat vremena. Ako vremenski izvještaj ukazuje na kišu, kašnjenje zbog  kiše automatski se izdaje prema postavljenom kašnjenju.",
       "deleted" : "Obrisano",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "Koristi OpenWeatherMaps podatke u vezi s odabranom metodom za podešavanje postotka navodnjavanja.",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "Koristi OpenWeatherMaps podatke u vezi s odabranom metodom za podešavanje postotka navodnjavanja.",
       "Ignore Rain" : "Ignoriraj kišu",
       "Are you sure you want to reboot OpenSprinkler?" : "Jeste li sigurni da želite reboot OpenSprinkler?",
       "Program Start" : "Program start",

@@ -394,7 +394,7 @@
       "Starting In" : "Inicio en",
       "Warning: The use of odd/even restrictions with the selected interval day may result in the program not running at all." : "",
       "Low" : "Min",
-      "Weather adjustment uses OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
+      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
       "Manual Control" : "Control Manual",
       "Click any program below to expand/edit. Be sure to save changes." : "Click en los programas de abajo para expandir/editar. Asegúrate de guardar los cambios.",
       "Paste your backup here" : "Pegue su copia de seguridad aquí",
