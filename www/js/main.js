@@ -2594,9 +2594,9 @@ function formatTemp( temp ) {
 
 function formatPrecip( precip ) {
     if ( isMetric ) {
-        precip = parseFloat( precip * 25.4 ).toFixed(1) + " mm";
+        precip = Math.round( precip * 25.4 *10 ) / 10 + " mm";
     } else {
-        precip = parseFloat(( precip * 100 ) / 100 ).toFixed(0) + " in";
+        precip = Math.round( precip * 100 ) / 100 + " in";
     }
     return precip;
 }
@@ -2834,8 +2834,16 @@ function makeForecast() {
 			"<div title='" + weather.description + "' class='wicon'><img src='http://openweathermap.org/img/w/" + weather.icon + ".png'></div>" +
 			"<span>" + formatTemp( weather.temp ) + "</span><br>" +
 			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-			"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>" +
-		"</li>";
+            "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
+            
+        if ( weather.source === "darksky" ){
+        
+            list += "<br>" +
+                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>"
+    
+        }
+
+		list += "</li>";
 
     for ( i = 1; i < weather.forecast.length; i++ ) {
 		date = new Date( weather.forecast[ i ].date * 1000 );
@@ -2851,8 +2859,16 @@ function makeForecast() {
 				"<span>" + _( "Low" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_min ) + "  </span>" +
 				"<span>" + _( "High" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_max ) + "</span><br>" +
 				"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-				"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>" +
-			"</li>";
+                "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
+        
+        if ( weather.source === "darksky" ){
+        
+            list += "<br>" +
+                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.forecast[ i ].precip ) + "</span>"
+
+        }
+
+		list += "</li>";
     }
 
     return list;
@@ -2978,19 +2994,19 @@ function debugWeather() {
         if ( weather.source === "darksky" ){
 
             popup += "<tr><td>" + _( "Min Temp" ) + "</td><td>" + formatTemp( weather.minTemp ) + "</td></tr>" +
-				"<tr><td>" + _( "Max Temp" ) + "</td><td>" + formatTemp( weather.maxTemp ) + "</td></tr>" +
-				"<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + formatPrecip( weather.yesterdayPrecip ) + "</td></tr>" +
-				"<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.currentPrecip ) + "</td></tr>"
+				    "<tr><td>" + _( "Max Temp" ) + "</td><td>" + formatTemp( weather.maxTemp ) + "</td></tr>" +
+				    "<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + formatPrecip( weather.yesterdayPrecip ) + "</td></tr>" +
+				    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.currentPrecip ) + "</td></tr>"
 
         } else {
 
             popup += "<tr><td>" + _( "Mean Temp" ) + "</td><td>" + formatTemp( weather.temp ) + "</td></tr>" +
-                "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.precip ) + "</td></tr>"
+                    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.precip ) + "</td></tr>"
 
         }
 			
 		popup += "<tr><td>" + _( "Adjustment Method" ) + "</td><td>" + getAdjustmentName( controller.options.uwt ) + "</td></tr>" +
-            "<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>";
+                "<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>";
             
 	}
 
