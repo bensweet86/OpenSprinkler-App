@@ -2645,7 +2645,7 @@ function updateWeather() {
 
 function updateWeatherBox() {
     $( "#weather" )
-        .html( "<div title='" + weather.description + "' class='wicon'><img src='http://openweathermap.org/img/w/" + weather.icon + ".png'></div>" +
+        .html( "<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
 			"<div class='inline tight'>" + formatTemp( weather.temp ) + "</div><br><div class='inline location tight'>" + ( weather.city || "" ) + "</div>" +
 			( typeof weather.alert === "object" ? "<div><button class='tight help-icon btn-no-border ui-btn ui-icon-alert ui-btn-icon-notext ui-corner-all'></button>" + weather.alert.type + "</div>" : "" ) )
         .off( "click" ).on( "click", function() {
@@ -2798,7 +2798,7 @@ function makeForecast() {
 
     list += "<li data-icon='false' class='center'>" +
 			"<div>" + _( "Now" ) + "</div><br>" +
-			"<div title='" + weather.description + "' class='wicon'><img src='http://openweathermap.org/img/w/" + weather.icon + ".png'></div>" +
+			"<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
 			"<span>" + formatTemp( weather.temp ) + "</span><br>" +
 			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
             "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
@@ -2821,7 +2821,7 @@ function makeForecast() {
 
         list += "<li data-icon='false' class='center'>" +
 				"<div>" + date.toLocaleDateString() + "</div><br>" +
-				"<div title='" + weather.forecast[ i ].description + "' class='wicon'><img src='http://openweathermap.org/img/w/" + weather.forecast[ i ].icon + ".png'></div>" +
+				"<div title='" + weather.forecast[ i ].description + "' class='wicon cond" + weather.forecast[ i ].icon + "'></div>" +
 				"<span>" + _( weekdays[ date.getDay() ] ) + "</span><br>" +
 				"<span>" + _( "Low" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_min ) + "  </span>" +
 				"<span>" + _( "High" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_max ) + "</span><br>" +
