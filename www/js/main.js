@@ -27,7 +27,8 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
     isFileCapable = !isiOS && !isAndroid && !isIEMobile && !isOSXApp && !isFireFoxOS &&
                     !isWinApp && !isBB10 && window.FileReader,
     isTouchCapable = "ontouchstart" in window || "onmsgesturechange" in window,
-    isMetric = ( [ "US", "BM", "PW" ].indexOf( navigator.language.split( "-" )[ 1 ] ) !== -1 ),
+    isMetric = ( [ "US", "BM", "PW" ].indexOf( navigator.language.split( "-" )[ 1 ] ) === -1 ),
+    locale = navigator.userLanguage || navigator.language,
 
     // Small wrapper to handle Chrome vs localStorage usage
     storage = {
@@ -2820,7 +2821,7 @@ function makeForecast() {
         sunset = times[ 1 ];
 
         list += "<li data-icon='false' class='center'>" +
-				"<div>" + date.toLocaleDateString() + "</div><br>" +
+				"<div>" + date.toLocaleDateString(locale) + "</div><br>" +
 				"<div title='" + weather.forecast[ i ].description + "' class='wicon cond" + weather.forecast[ i ].icon + "'></div>" +
 				"<span>" + _( weekdays[ date.getDay() ] ) + "</span><br>" +
 				"<span>" + _( "Low" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_min ) + "  </span>" +
