@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 // Initialize global variables
 var isIEMobile = /IEMobile/.test( navigator.userAgent ),
     isAndroid = /Android|\bSilk\b/.test( navigator.userAgent ),
@@ -27,6 +27,8 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
     isFileCapable = !isiOS && !isAndroid && !isIEMobile && !isOSXApp && !isFireFoxOS &&
                     !isWinApp && !isBB10 && window.FileReader,
     isTouchCapable = "ontouchstart" in window || "onmsgesturechange" in window,
+    isMetric = ( [ "US", "BM", "PW" ].indexOf( navigator.language.split( "-" )[ 1 ] ) === -1 ),
+    locale = navigator.userLanguage || navigator.language,
 
     // Small wrapper to handle Chrome vs localStorage usage
     storage = {
@@ -117,11 +119,9 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
     // Array to hold all notifications currently displayed within the app
     notifications = [],
     timers = {},
-    isWUDataValid = false,
-	isDSDataValid = false,
     curr183, currIp, currPrefix, currAuth, currPass, currAuthUser,
-    currAuthPass, currLocal, currLang, language, deviceip, errorTimeout, weather, weatherKeyFail, darkSkyKeyFail, openPanel;
-	
+    currAuthPass, currLocal, currLang, language, deviceip, errorTimeout, weather, darkSkyKeyFail, openPanel;
+
 // Prevent errors from bubbling up on Windows
 if ( isWinApp ) {
     $( window ).on( "error", function( msg, url, line ) {
@@ -811,8 +811,7 @@ function newLoad() {
     updateController(
         function() {
             var weatherAdjust = $( ".weatherAdjust" ),
-                changePassword = $( ".changePassword" ),
-                weatherProvider = $( ".show-providers" );
+                changePassword = $( ".changePassword" );
 
             $.mobile.loading( "hide" );
             updateWeather();
@@ -837,14 +836,6 @@ function newLoad() {
             } else {
                 $( "#info-list" ).find( "li[data-role='list-divider']" ).text( _( "Information" ) );
             }
-
-            // Check if the firmware supports a Weather Underground Key
-            // If not, allow the app to manage key settings for in-app weather view
-	        if ( checkOSVersion( 210 ) ) {
-	            weatherProvider.hide();
-	        } else {
-	            weatherProvider.css( "display", "" );
-	        }
 
             // Check if a firmware update is available
 			checkFirmwareUpdate();
@@ -2321,8 +2312,6 @@ function showZimmermanAdjustmentOptions( button, callback ) {
             bt: 70,
             br: 0
 		}, controller.settings.wto ),
-		region = weather ? weather.forecast.region : navigator.language.split( "-" )[ 1 ],
-        isMetric = ( region === "US" || region === "BM" || region === "PW" ) ? false : true,
 
 		// Enable Zimmerman extension to set weather conditions as baseline for adjustment
         hasBaseline = checkOSVersion( 2162 );
@@ -2553,425 +2542,120 @@ function showAutoRainDelayAdjustmentOptions( button, callback ) {
     openPopup( popup, { positionTo: "window" } );
 }
 
-// Checks to make sure an array contains the keys provided and returns true or false
-function validateWeatherValues( keys, array ) {
-	var key;
-
-	if ( typeof array !== "object" ) {
-		return false;
-	}
-
-	for ( key in keys ) {
-		if ( !keys.hasOwnProperty( key ) ) {
-			continue;
-		}
-
-		key = keys[ key ];
-
-		if ( !array.hasOwnProperty( key ) || array[ key ] === null || parseInt( array[ key ] ) === -999 ) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-function validateWUData( history, current ) {
-    if ( typeof history === "object" && typeof history.dailysummary === "object" ) {
-        var summary = history.dailysummary[ 0 ];
-
-        if ( !validateWeatherValues( [ "minhumidity", "maxhumidity", "meantempm", "meantempi", "precipm", "precipi" ], summary ) ||
-				!validateWeatherValues( [ "precip_today_metric", "precip_today_in" ], current ) ) {
-			return false;
-        }
-
-        return true;
+function formatTemp( temp ) {
+    if ( isMetric ) {
+        temp = Math.round( ( temp - 32 ) * ( 5 / 9 ) * 10 ) / 10 + "&#176;C";
     } else {
-		return false;
-    }
-}
-
-function validateDSData( forecast, current ) {
-    if ( typeof forecast === "object" && typeof current === "object" ) {
-        var summary = current.hourly.data[ 0 ];
-
-        if ( !validateWeatherValues( [ "icon", "summary", "temperature", "time", "latitude", "longitude", "timezone" ], forecast.currently ) ||
-				!validateWeatherValues( [ "time", "precipIntensity" ], summary ) ) {
-			return false;
-        }
-
-        return true;
-    } else {
-		return false;
-    }
-}
-
-// Validates a Weather Underground location to verify it contains the data needed for Weather Adjustments
-function validateWULocation( location, callback ) {
-    if ( typeof controller.settings.wtkey !== "string" || controller.settings.wtkey === "" ) {
-        callback( false );
-    }
-
-    $.ajax( {
-        url: "https://api.wunderground.com/api/" + controller.settings.wtkey + "/yesterday/conditions/q/" + encodeURIComponent( location ) + ".json",
-        dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-        shouldRetry: retryCount
-    } ).done( function( data ) {
-        if ( typeof data.response.error === "object" ) {
-            callback( false );
-            return;
-        }
-
-        callback( validateWUData( data.history, data.current_observation ) );
-    } ).fail( function() {
-		callback( false );
-    } );
-}
-
-function convertTemp( temp, region ) {
-    if ( region === "United States" || region === "Bermuda" || region === "Palau" ) {
-        temp = temp + "&#176;F";
-    } else {
-        temp = parseInt( Math.round( ( temp - 32 ) * ( 5 / 9 ) ) ) + "&#176;C";
+        temp = Math.round( temp * 10 ) / 10 + "&#176;F";
     }
     return temp;
+}
+
+function formatPrecip( precip ) {
+    if ( isMetric ) {
+        precip = Math.round( precip * 25.4 *10 ) / 10 + " mm";
+    } else {
+        precip = Math.round( precip * 100 ) / 100 + " in";
+    }
+    return precip;
 }
 
 function hideWeather() {
     $( "#weather" ).empty().parents( ".info-card" ).addClass( "noweather" );
 }
 
-function updateWeather() {
-    if ( typeof controller.settings.wtkey !== "undefined" && controller.settings.wtkey !== "" ) {
-        updateWundergroundWeather( controller.settings.wtkey );
-        return;
-    } else if ( typeof controller.settings.dskey !== "undefined" && controller.settings.dskey !== "" ) {
-        updateDarkSkyWeather( controller.settings.dskey );
-        return;
-    }
-
-    storage.get( [ "provider", "wapikey" ], function( data ) {
-        if ( controller.settings.loc === "" ) {
-            hideWeather();
-            return;
-        }
-
-        showLoading( "#weather" );
-
-        if ( data.provider === "wunderground" && data.wapikey ) {
-            updateWundergroundWeather( data.wapikey );
-		} else if ( data.provider === "darksky" && data.wapikey ) {
-			updateDarkSkyWeather( data.wapikey );
-        } else {
-            updateYahooWeather();
-        }
-    } );
+function finishWeatherUpdate() {
+	updateWeatherBox();
+	$.mobile.document.trigger( "weatherUpdateComplete" );
 }
-//deprecate for OWM, issue with key sharing
-function updateYahooWeather( string ) {
 
-	// If location matches a GPS coordinate, parse the location before querying for weather
-	if ( !string && controller.settings.loc.match( regex.gps ) ) {
-		coordsToLocation( controller.settings.loc.split( "," )[ 0 ], controller.settings.loc.split( "," )[ 1 ], function( result ) {
-			updateYahooWeather( result );
-		} );
+function updateWeather() {
+    var now = new Date().getTime(),
+        url;
 
+	if ( weather && weather.providedLocation === controller.settings.loc && now - weather.lastUpdated < 60 * 60 * 100 ) {
+		finishWeatherUpdate();
+		return;
+	} else if ( localStorage.weatherData ) {
+		try {
+			var weatherData = JSON.parse( localStorage.weatherData );
+			if ( weatherData.providedLocation === controller.settings.loc && now - weatherData.lastUpdated < 60 * 60 * 100 ) {
+				weather = weatherData;
+				finishWeatherUpdate();
+				return;
+			}
+		} catch ( err ) {}
+	}
+
+	weather = undefined;
+
+	if ( controller.settings.loc === "" ) {
+		hideWeather();
 		return;
 	}
 
+	showLoading( "#weather" );
+
+    if ( typeof controller.settings.wurl !== "undefined" && controller.settings.wurl !== "" ) {
+
+        url = "http://" + controller.settings.wurl + "/weatherData?loc=" +
+        encodeURIComponent( controller.settings.loc ) +
+        "&dskey=" + controller.settings.dskey
+
+    } else {
+
+        url = "http://weather.opensprinkler.com/weatherData?loc=" +
+        encodeURIComponent( controller.settings.loc ) +
+        "&dskey=" + controller.settings.dskey
+
+    }
+
 	$.ajax( {
-		url: "https://query.yahooapis.com/v1/public/yql?q=select%20item,title,location%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22" +
-			encodeURIComponent( string || controller.settings.loc ) +
-			"%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys",
-		dataType: isChromeApp || isWinApp ? "json" : "jsonp",
+		url: url,
 		contentType: "application/json; charset=utf-8",
-		shouldRetry: retryCount,
 		success: function( data ) {
 
 			// Hide the weather if no data is returned
-			if ( data.query.results.channel.item.title === "City not found" ) {
+			if ( typeof data !== "object" ) {
 				hideWeather();
 				return;
 			}
-			var now = data.query.results.channel.item.condition,
-				title = data.query.results.channel.title,
-				loc = /Yahoo! Weather - (.*)/.exec( title ),
-				region = data.query.results.channel.location.country;
 
-			currentCoordinates = [ data.query.results.channel.item.lat, data.query.results.channel.item.long ];
+			isMetric = ( data.region !== "US" && data.region !== "BM" && data.region !== "PW" );
 
-			weather = {
-				title: now.text,
-				code: now.code,
-				temp: convertTemp( now.temp, region ),
-				location: loc[ 1 ],
-				forecast: data.query.results.channel.item.forecast,
-				region: region,
-				source: "yahoo"
-			};
+			currentCoordinates = data.location;
 
-			isWUDataValid = false;
+            coordsToLocation( data.location[ 0 ], data.location[ 1 ], function( result ) {
 
-			updateWeatherBox();
+                if ( data.source === "darksky" ) {
 
-			$.mobile.document.trigger( "weatherUpdateComplete" );
+                    data.city =  result;
+
+                }
+
+                weather = data;
+                data.lastUpdated = new Date().getTime();
+                data.providedLocation = controller.settings.loc;
+                localStorage.weatherData = JSON.stringify( data );
+        
+                finishWeatherUpdate();
+                
+            } );
+
 		}
 	} );
 }
 
 function updateWeatherBox() {
     $( "#weather" )
-        .html( "<div title='" + weather.title + "' class='wicon cond" + weather.code + "'></div>" +
-			"<div class='inline tight'>" + weather.temp + "</div><br><div class='inline location tight'>" + weather.location + "</div>" +
+        .html( "<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
+			"<div class='inline tight'>" + formatTemp( weather.temp ) + "</div><br><div class='inline location tight'>" + ( weather.city || "" ) + "</div>" +
 			( typeof weather.alert === "object" ? "<div><button class='tight help-icon btn-no-border ui-btn ui-icon-alert ui-btn-icon-notext ui-corner-all'></button>" + weather.alert.type + "</div>" : "" ) )
         .off( "click" ).on( "click", function() {
             changePage( "#forecast" );
             return false;
         } )
         .parents( ".info-card" ).removeClass( "noweather" );
-}
-
-function updateWundergroundWeather( wapikey ) {
-    $.ajax( {
-        url: "https://api.wunderground.com/api/" + wapikey + "/yesterday/conditions/forecast/alerts/lang:EN/q/" + encodeURIComponent( controller.settings.loc ) + ".json",
-        dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-        contentType: "application/json; charset=utf-8",
-        shouldRetry: retryCount,
-        success: function( data ) {
-            var code, temp;
-
-			if ( typeof data.response.error === "object" ) {
-				if ( data.response.error.type !== "querynotfound" ) {
-	                weatherKeyFail = true;
-	            }
-                updateYahooWeather();
-                return;
-            } else {
-                weatherKeyFail = false;
-            }
-
-	        if ( validateWUData( data.history, data.current_observation ) ) {
-				isWUDataValid = true;
-	        } else {
-				isWUDataValid = false;
-	        }
-
-            if ( data.current_observation.icon_url.indexOf( "nt_" ) !== -1 ) {
-                code = "nt_" + data.current_observation.icon;
-            } else {
-                code = data.current_observation.icon;
-            }
-
-            var wwForecast = {
-                condition: {
-                    text: data.current_observation.weather,
-                    code: code,
-                    temp_c: data.current_observation.temp_c,
-                    temp_f: data.current_observation.temp_f,
-                    date: data.current_observation.observation_time,
-                    precip_today_in: data.current_observation.precip_today_in,
-                    precip_today_metric: data.current_observation.precip_today_metric
-                },
-                location: data.current_observation.display_location.full,
-                region: data.current_observation.display_location.country_iso3166,
-                simpleforecast: {}
-            };
-
-            currentCoordinates = [
-				data.current_observation.display_location.latitude || data.current_observation.observation_location.latitude,
-				data.current_observation.display_location.longitude || data.current_observation.observation_location.longitude
-			];
-
-            $.each( data.forecast.simpleforecast.forecastday, function( k, attr ) {
-                 wwForecast.simpleforecast[ k ] = attr;
-            } );
-
-            if ( wwForecast.region === "US" || wwForecast.region === "BM" || wwForecast.region === "PW" ) {
-                temp = Math.round( wwForecast.condition.temp_f ) + "&#176;F";
-            } else {
-                temp = wwForecast.condition.temp_c + "&#176;C";
-            }
-
-            weather = {
-                title: wwForecast.condition.text,
-                code: code,
-                temp: temp,
-                forecast: wwForecast,
-                source: "wunderground"
-            };
-
-            if ( data.alerts.length > 0 ) {
-
-                var alertTypes = {
-                    HUR: _( "Hurricane Local Statement" ),
-                    TOR: _( "Tornado Warning" ),
-                    TOW: _( "Tornado Watch" ),
-                    WRN: _( "Severe Thunderstorm Warning" ),
-                    SEW: _( "Severe Thunderstorm Watch" ),
-                    WIN: _( "Winter Weather Advisory" ),
-                    FLO: _( "Flood Warning" ),
-                    WAT: _( "Flood Watch / Statement" ),
-                    WND: _( "High Wind Advisory" ),
-                    SVR: _( "Severe Weather Statement" ),
-                    HEA: _( "Heat Advisory" ),
-                    FOG: _( "Dense Fog Advisory" ),
-                    SPE: _( "Special Weather Statement" ),
-                    FIR: _( "Fire Weather Advisory" ),
-                    VOL: _( "Volcanic Activity Statement" ),
-                    HWW: _( "Hurricane Wind Warning" ),
-                    REC: _( "Record Set" ),
-                    REP: _( "Public Reports" ),
-                    PUB: _( "Public Information Statement" )
-                };
-
-                weather.alert = {
-                    type: alertTypes[ data.alerts[ 0 ].type ],
-                    name: ( data.alerts[ 0 ].wtype_meteoalarm_name || data.alerts[ 0 ].description ),
-                    message: data.alerts[ 0 ].message
-                };
-            }
-
-            coordsToLocation( currentCoordinates[ 0 ], currentCoordinates[ 1 ], function( result ) {
-                weather.location = result;
-                updateWeatherBox();
-            }, wwForecast.location );
-
-            $.mobile.document.trigger( "weatherUpdateComplete" );
-        }
-    } );
-}
-
-function updateDarkSkyWeather( wapikey ) {
-	
-	// Generate URL for Dark Sky Time Machine Request to get conditions yesterday and use forecast request for current conditions
-    $.ajax( {
-        url: "https://api.darksky.net/forecast/" + wapikey + "/" + encodeURIComponent( controller.settings.loc ) + "?exclude=hourly,flags",
-        dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-        contentType: "application/json; charset=utf-8",
-        shouldRetry: retryCount,
-        success: function( forecastData ) {
-			
-			// Generate URL for Dark Sky Time machine request to get conditions for today
-			$.ajax( {
-				url: "https://api.darksky.net/forecast/" + wapikey + "/" + encodeURIComponent( controller.settings.loc ) + "," + ( ( forecastData.daily.data[0].time) || 0 ) + "?exclude=currently,daily,flags",
-				dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-				contentType: "application/json; charset=utf-8",
-				shouldRetry: retryCount,
-				success: function( todayData ) {
-			
-					var code, temp;
-
-					if ( forecastData === "Forbidden" ) {
-						if ( forecastData !== "Not Found" ) {
-							darkSkyKeyFail = true;
-						}
-						updateYahooWeather();
-						return;
-					} else {
-						darkSkyKeyFail = false;
-					}
-
-					if ( validateDSData( forecastData, todayData ) ) {
-						isDSDataValid = true;
-					} else {
-						isDSDataValid = false;
-					}
-
-					var maxCount = 24;
-				
-					var currentPrecip = 0;
-				
-					for ( var index = 0; index < maxCount; index++ ) {
-						
-						// Only use current day rainfall data for the hourly readings prior to the current hour
-						if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
-							currentPrecip += parseFloat( todayData.hourly.data[index].precipIntensity );
-						}
-						
-					}
-					
-					code = forecastData.currently.icon;
-
-					var wwForecast = {
-						condition: {
-							text: forecastData.currently.summary,
-							code: code,
-							temp_c: Math.round( (forecastData.currently.temperature - 32 ) * 5 / 9 ),
-							temp_f: forecastData.currently.temperature,
-							date: forecastData.currently.time,
-							precip_today_in: parseFloat( currentPrecip ).toFixed(2),
-							precip_today_metric: parseFloat( currentPrecip * 25.4 ).toFixed(1),
-						},
-						location: forecastData.latitude + "," + forecastData.longitude,
-						simpleforecast: {}
-					};
-
-					// Convert the timezone to country ISO3166 code based on string match; America = US, Bermuda = BM, Palau = PW
-					if ( forecastData.timezone.match( /^America.*$/ ) ) { wwForecast.region = "US";
-					} else if ( forecastData.timezone.match( /^Bermuda.*$/ ) ) { wwForecast.region = "BM";
-					} else if ( forecastData.timezone.match( /^Palau.*$/ ) ) { wwForecast.region = "PW";
-					} else { wwForecast.region = forecastData.timezone; 
-					}
-					
-					currentCoordinates = [
-						forecastData.latitude,
-						forecastData.longitude
-					];
-
-					$.each( forecastData.daily.data, function( k, attr ) {
-						 wwForecast.simpleforecast[ k ] = attr;
-					} );
-
-					if ( wwForecast.region === "US" || wwForecast.region === "BM" || wwForecast.region === "PW" ) {
-						temp = Math.round( wwForecast.condition.temp_f ) + "&#176;F";
-					} else {
-						temp = wwForecast.condition.temp_c + "&#176;C";
-					}
-
-					weather = {
-						title: wwForecast.condition.text,
-						code: code,
-						temp: temp,
-						forecast: wwForecast,
-						source: "darksky"
-					};
-					
-					if ( typeof forecastData.alerts !== "undefined" ){
-						if ( forecastData.alerts.length > 0 ) {
-							
-							weather.alert = {
-								name: forecastData.alerts[ 0 ].title,
-								message: forecastData.alerts[ 0 ].description
-							};
-						}
-					}
-					
-					coordsToLocation( currentCoordinates[ 0 ], currentCoordinates[ 1 ], function( result ) {
-						weather.location = result;
-						updateWeatherBox();
-					}, wwForecast.location );
-
-					$.mobile.document.trigger( "weatherUpdateComplete" );
-				},
-				error: function( todayData ) {
-					if ( todayData === "Not Found" ) {
-						updateYahooWeather();
-						return;
-					} else {
-						darkSkyKeyFail = false;
-					}
-				} 
-			} );
-        },
-		error: function( forecastData ) {
-			if ( forecastData === "Not Found" ) {
-                updateYahooWeather();
-                return;
-            } else {
-                darkSkyKeyFail = false;
-            }
-		}
-    } );	
 }
 
 function coordsToLocation( lat, lon, callback, fallback ) {
@@ -3062,7 +2746,7 @@ function showForecast() {
     var page = $( "<div data-role='page' id='forecast'>" +
             "<div class='ui-content' role='main'>" +
                 "<ul data-role='listview' data-inset='true'>" +
-                    ( weather.source === "wunderground" ? makeWundergroundForecast() : ( weather.source === "darksky" ? makeDarkSkyForecast() : makeYahooForecast() ) ) +
+                    makeForecast() +
                 "</ul>" +
             "</div>" +
         "</div>" );
@@ -3107,188 +2791,54 @@ function showForecast() {
     $.mobile.pageContainer.append( page );
 }
 
-function makeWundergroundForecast() {
-    var temp, precip;
-
-    if ( weather.forecast.region === "US" || weather.forecast.region === "BM" || weather.forecast.region === "PW" ) {
-        temp = weather.forecast.condition.temp_f + "&#176;F";
-        precip = weather.forecast.condition.precip_today_in + " in";
-    } else {
-        temp = weather.forecast.condition.temp_c + "&#176;C";
-        precip = weather.forecast.condition.precip_today_metric + " mm";
-    }
-
-    var list = "<li data-role='list-divider' data-theme='a' class='center'>" + weather.location + "</li>";
-
-	if ( typeof weather.alert === "object" ) {
-		list += "<li data-icon='false' class='center red alert'>" +
-			"<div>" + weather.alert.type + "</div>" +
-			"<br>" +
-			"<span class='smaller'>" + _( "Click to read more..." ) + "</span>" +
-		"</li>";
-	}
-
-    list += "<li data-icon='false' class='center'>" +
-			"<div>" + _( "Now" ) + "</div><br>" +
-			"<div title='" + weather.forecast.condition.text + "' class='wicon cond" + weather.forecast.condition.code + "'></div>" +
-			"<span>" + temp + "</span><br>" +
-			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( controller.settings.sunrise / 60 ) % 24 ) + ":" + pad( controller.settings.sunrise % 60 ) + "</span> " +
-			"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( controller.settings.sunset / 60 ) % 24 ) + ":" + pad( controller.settings.sunset % 60 ) + "</span><br>" +
-			"<span>" + _( "Precip" ) + "</span><span>: " + precip + "</span>" +
-		"</li>";
-
-    $.each( weather.forecast.simpleforecast, function( i ) {
-        if ( i === "0" ) {
-            return;
-        }
-
-        var times = getSunTimes( new Date( this.date.epoch * 1000 ) ),
-            sunrise = times[ 0 ],
-            sunset = times[ 1 ],
-            precip;
-
-        if ( weather.forecast.region === "US" || weather.forecast.region === "BM" || weather.forecast.region === "PW" ) {
-            precip = this.qpf_allday.in;
-            if ( precip === null ) {
-                precip = 0;
-            }
-            list += "<li data-icon='false' class='center'>" +
-					"<div>" + this.date.monthname_short + " " + this.date.day + "</div><br>" +
-					"<div title='" + this.conditions + "' class='wicon cond" + this.icon + "'></div>" +
-					"<span>" + _( this.date.weekday_short ) + "</span><br>" +
-					"<span>" + _( "Low" ) + "</span><span>: " + this.low.fahrenheit + "&#176;F  </span>" +
-					"<span>" + _( "High" ) + "</span><span>: " + this.high.fahrenheit + "&#176;F</span><br>" +
-					"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-					"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span><br>" +
-					"<span>" + _( "Precip" ) + "</span><span>: " + precip + " in</span>" +
-				"</li>";
-        } else {
-            precip = this.qpf_allday.mm;
-            if ( precip === null ) {
-                precip = 0;
-            }
-            list += "<li data-icon='false' class='center'>" +
-					"<div>" + this.date.monthname_short + " " + this.date.day + "</div><br>" +
-					"<div title='" + this.conditions + "' class='wicon cond" + this.icon + "'></div>" +
-					"<span>" + _( this.date.weekday_short ) + "</span><br>" +
-					"<span>" + _( "Low" ) + "</span><span>: " + this.low.celsius + "&#176;C  </span>" +
-					"<span>" + _( "High" ) + "</span><span>: " + this.high.celsius + "&#176;C</span><br>" +
-					"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-					"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( controller.settings.sunset % 60 ) + "</span><br>" +
-					"<span>" + _( "Precip" ) + "</span><span>: " + precip + " mm</span>" +
-				"</li>";
-        }
-    } );
-
-    return list;
-}
-
-function makeDarkSkyForecast() {
-    var temp, precip;
-
-    if ( weather.forecast.region === "US" || weather.forecast.region === "BM" || weather.forecast.region === "PW" ) {
-        temp = weather.forecast.condition.temp_f + "&#176;F";
-        precip = weather.forecast.condition.precip_today_in + " in";
-    } else {
-        temp = weather.forecast.condition.temp_c + "&#176;C";
-        precip = weather.forecast.condition.precip_today_metric + " mm";
-    }
-
-    var list = "<li data-role='list-divider' data-theme='a' class='center'>" + weather.location + "</li>";
-
-	if ( typeof weather.alert === "object" ) {
-		list += "<li data-icon='false' class='center red alert'>" +
-			"<div>" + weather.alert.type + "</div>" +
-			"<br>" +
-			"<span class='smaller'>" + _( "Click to read more..." ) + "</span>" +
-		"</li>";
-	}
-
-    list += "<li data-icon='false' class='center'>" +
-			"<div>" + _( "Now" ) + "</div><br>" +
-			"<div title='" + weather.forecast.condition.text + "' class='wicon cond" + weather.forecast.condition.code + "'></div>" +
-			"<span>" + temp + "</span><br>" +
-			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( controller.settings.sunrise / 60 ) % 24 ) + ":" + pad( controller.settings.sunrise % 60 ) + "</span> " +
-			"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( controller.settings.sunset / 60 ) % 24 ) + ":" + pad( controller.settings.sunset % 60 ) + "</span><br>" +
-			"<span>" + _( "Precip" ) + "</span><span>: " + precip + "</span>" +
-		"</li>";
-
-    $.each( weather.forecast.simpleforecast, function( i ) {
-        if ( i === "0" ) {
-            return;
-        }
-
-        var times = getSunTimes( new Date( this.time * 1000 ) ),
-            sunrise = times[ 0 ],
-            sunset = times[ 1 ],
-            precip;
-
-        if ( weather.forecast.region === "US" || weather.forecast.region === "BM" || weather.forecast.region === "PW" ) {
-            precip = parseFloat( this.precipIntensity * 24 ).toFixed(0);
-            if ( precip === null ) {
-                precip = 0;
-            }
-            list += "<li data-icon='false' class='center'>" +
-					"<div>" + moment.unix(this.time).format("DD MMM YYYY") + "</div><br>" +
-					"<div title='" + this.summary + "' class='wicon cond" + this.icon + "'></div>" +
-					"<span>" + moment.unix(this.time).format("ddd") + "</span><br>" +
-					"<span>" + _( "Low" ) + "</span><span>: " + this.temperatureLow + "&#176;F  </span>" +
-					"<span>" + _( "High" ) + "</span><span>: " + this.temperatureHigh + "&#176;F</span><br>" +
-					"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-					"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span><br>" +
-					"<span>" + _( "Precip" ) + "</span><span>: " + precip + " in</span>" +
-				"</li>";
-        } else {
-            precip = parseFloat( this.precipIntensity * 24 * 25.4 ).toFixed(1);
-            if ( precip === null ) {
-                precip = 100;
-            }
-            list += "<li data-icon='false' class='center'>" +
-					"<div>" + moment.unix(this.time).format("DD MMM YYYY") + "</div><br>" +
-					"<div title='" + this.summary + "' class='wicon cond" + this.icon + "'></div>" +
-					"<span>" + moment.unix(this.time).format("ddd") + "</span><br>" +
-					"<span>" + _( "Low" ) + "</span><span>: " + Math.round( (this.temperatureLow - 32 ) * 5 / 9 ) + "&#176;C  </span>" +
-					"<span>" + _( "High" ) + "</span><span>: " + Math.round( (this.temperatureHigh - 32 ) * 5 / 9 ) + "&#176;C</span><br>" +
-					"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-					"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( controller.settings.sunset % 60 ) + "</span><br>" +
-					"<span>" + _( "Precip" ) + "</span><span>: " + precip + " mm</span>" +
-				"</li>";
-        }
-    } );
-
-    return list;
-}
-
-//Deprecate, should be OWM - issue with API key sharing
-function makeYahooForecast() {
-    var list = "<li data-role='list-divider' data-theme='a' class='center'>" + weather.location + "</li>",
+function makeForecast() {
+    var list = "<li data-role='list-divider' data-theme='a' class='center'>" + weather.city + "</li>",
         sunrise = controller.settings.sunrise ? controller.settings.sunrise : getSunTimes()[ 0 ],
         sunset = controller.settings.sunset ? controller.settings.sunset : getSunTimes()[ 1 ],
-        i;
+		i, date, times;
+
+	var weekdays = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ];
 
     list += "<li data-icon='false' class='center'>" +
 			"<div>" + _( "Now" ) + "</div><br>" +
-			"<div title='" + weather.title + "' class='wicon cond" + weather.code + "'></div>" +
-			"<span>" + weather.temp + "</span><br>" +
+			"<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
+			"<span>" + formatTemp( weather.temp ) + "</span><br>" +
 			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-			"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>" +
-		"</li>";
+            "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
+            
+        if ( weather.source === "darksky" ){
+        
+            list += "<br>" +
+                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>"
+    
+        }
+
+		list += "</li>";
 
     for ( i = 1; i < weather.forecast.length; i++ ) {
-        var times = getSunTimes( new Date( weather.forecast[ i ].date ) );
+		date = new Date( weather.forecast[ i ].date * 1000 );
+		times = getSunTimes( date );
 
         sunrise = times[ 0 ];
         sunset = times[ 1 ];
 
         list += "<li data-icon='false' class='center'>" +
-				"<div>" + weather.forecast[ i ].date + "</div><br>" +
-				"<div title='" + weather.forecast[ i ].text + "' class='wicon cond" + weather.forecast[ i ].code + "'></div>" +
-				"<span>" + _( weather.forecast[ i ].day ) + "</span><br>" +
-				"<span>" + _( "Low" ) + "</span><span>: " + convertTemp( weather.forecast[ i ].low, weather.region ) + "  </span>" +
-				"<span>" + _( "High" ) + "</span><span>: " + convertTemp( weather.forecast[ i ].high, weather.region ) + "</span><br>" +
+				"<div>" + date.toLocaleDateString(locale) + "</div><br>" +
+				"<div title='" + weather.forecast[ i ].description + "' class='wicon cond" + weather.forecast[ i ].icon + "'></div>" +
+				"<span>" + _( weekdays[ date.getDay() ] ) + "</span><br>" +
+				"<span>" + _( "Low" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_min ) + "  </span>" +
+				"<span>" + _( "High" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_max ) + "</span><br>" +
 				"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-				"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>" +
-			"</li>";
+                "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
+        
+        if ( weather.source === "darksky" ){
+        
+            list += "<br>" +
+                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.forecast[ i ].precip ) + "</span>"
+
+        }
+
+		list += "</li>";
     }
 
     return list;
@@ -3348,47 +2898,6 @@ function overlayMap( callback ) {
                 }, { timeout: 10000 } );
             } catch ( err ) { exit( false ); }
         },
-        updateStations = function( latitude, longitude ) {
-			if ( typeof controller.settings.wtkey !== "string" || controller.settings.wtkey === "" ) {
-			    return;
-			}
-
-            $.ajax( {
-                url: "https://api.wunderground.com/api/" + controller.settings.wtkey + "/geolookup/q/" +
-                    ( latitude === -999 || longitude === -999 ? "autoip" : encodeURIComponent( latitude ) + "," + encodeURIComponent( longitude ) ) + ".json",
-                dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-                shouldRetry: retryCount
-            } ).done( function( data ) {
-                if ( typeof data.response.error === "object" ) {
-                    return;
-                }
-
-                var airports;
-
-                try {
-                    airports = data.location.nearby_weather_stations.airport.station;
-                    data = data.location.nearby_weather_stations.pws.station;
-                } catch ( err ) {
-                    return;
-                }
-
-                if ( data.length > 0 ) {
-                    data = encodeURIComponent( JSON.stringify( data ) );
-                    iframe.get( 0 ).contentWindow.postMessage( {
-                        type: "pwsData",
-                        payload: data
-                    }, "*" );
-                }
-
-                if ( airports.length > 0 ) {
-                    airports = encodeURIComponent( JSON.stringify( airports ) );
-                    iframe.get( 0 ).contentWindow.postMessage( {
-                        type: "airportData",
-                        payload: airports
-                    }, "*" );
-                }
-            } );
-        },
         iframe = popup.find( "iframe" ),
         locInput = $( "#loc" ).val(),
         current = {
@@ -3408,8 +2917,6 @@ function overlayMap( callback ) {
             popup.popup( "destroy" ).remove();
         } else if ( data.loaded === true ) {
             $.mobile.loading( "hide" );
-        } else if ( typeof data.location === "object" ) {
-            updateStations( data.location[ 0 ], data.location[ 1 ] );
         } else if ( data.dismissKeyboard === true ) {
             document.activeElement.blur();
         } else if ( data.getLocation === true ) {
@@ -3446,138 +2953,39 @@ function overlayMap( callback ) {
         x: 0,
         y: 0
     } );
-
-    updateStations( current.lat, current.lon );
 }
 
-function debugWU() {
-    $.ajax( {
-        url: "https://api.wunderground.com/api/" + controller.settings.wtkey + "/yesterday/conditions/q/" + controller.settings.loc + ".json",
-        dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-        shouldRetry: retryCount
-    } ).always( function( data ) {
-		$.mobile.loading( "hide" );
+function debugWeather() {
+	var popup = "<div data-role='popup' id='debugWeather' class='ui-content ui-page-theme-a'><table class='debugWeather'>";
 
-		var popup = "<div data-role='popup' id='debugWeather' class='ui-content ui-page-theme-a'><table class='debugWeather'>";
+	if ( weather ) {
+        popup += "<tr><td>" + _( "Humidity" ) + "</td><td>" + weather.humidity + "%</td></tr>"
+        
+        if ( weather.source === "darksky" ){
 
-		if (
-			typeof data.response.error !== "object" &&
-			typeof data.history === "object" &&
-			typeof data.history.dailysummary === "object" &&
-			validateWeatherValues( [ "minhumidity", "maxhumidity", "meantempm", "meantempi", "precipm", "precipi" ], data.history.dailysummary[ 0 ] ) &&
-			validateWeatherValues( [ "precip_today_metric", "precip_today_in" ], data.current_observation )
-		) {
+            popup += "<tr><td>" + _( "Min Temp" ) + "</td><td>" + formatTemp( weather.minTemp ) + "</td></tr>" +
+				    "<tr><td>" + _( "Max Temp" ) + "</td><td>" + formatTemp( weather.maxTemp ) + "</td></tr>" +
+				    "<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + formatPrecip( weather.yesterdayPrecip ) + "</td></tr>" +
+				    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.currentPrecip ) + "</td></tr>"
 
-            var country = data.current_observation.display_location.country_iso3166,
-				isMetric = ( ( country === "US" || country === "BM" || country === "PW" ) ? false : true );
+        } else {
 
-			popup += "<tr><td>" + _( "Min Humidity" ) + "</td><td>" + data.history.dailysummary[ 0 ].minhumidity + "%</td></tr>" +
-				"<tr><td>" + _( "Max Humidity" ) + "</td><td>" + data.history.dailysummary[ 0 ].maxhumidity + "%</td></tr>" +
-				"<tr><td>" + _( "Mean Temp" ) + "</td><td>" + ( isMetric ? data.history.dailysummary[ 0 ].meantempm + "&#176;C" : data.history.dailysummary[ 0 ].meantempi + "&#176;F" ) + "</td></tr>" +
-				"<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + ( isMetric ? data.history.dailysummary[ 0 ].precipm + "mm" : data.history.dailysummary[ 0 ].precipi + "\"" ) + "</td></tr>" +
-				"<tr><td>" + _( "Precip Today" ) + "</td><td>" + ( isMetric ? data.current_observation.precip_today_metric + "mm" : data.current_observation.precip_today_in + "\"" ) + "</td></tr>" +
-				"<tr><td>" + _( "Adjustment Method" ) + "</td><td>" + getAdjustmentName( controller.options.uwt ) + "</td></tr>" +
-				"<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>";
-		}
+            popup += "<tr><td>" + _( "Mean Temp" ) + "</td><td>" + formatTemp( weather.temp ) + "</td></tr>" +
+                    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.precip ) + "</td></tr>"
 
-		popup += ( typeof controller.settings.lwc === "number" ? "<tr><td>" + _( "Last Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lwc * 1000 ) ) + "</td></tr>" : "" ) +
-				 ( typeof controller.settings.lswc === "number" ? "<tr><td>" + _( "Last Successful Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lswc * 1000 ) ) + "</td></tr>" : "" ) +
-				 ( typeof controller.settings.lupt === "number" ? "<tr><td>" + _( "Last System Reboot" ) + "</td><td>" + dateToString( new Date( controller.settings.lupt * 1000 ) ) + "</td></tr>" : "" ) +
-				 "</table></div>";
-
-		openPopup( $( popup ) );
-    } );
-
-    return false;
-}
-
-function debugDarkSky() {
-	$.ajax( {
-        url: "https://api.darksky.net/forecast/" + controller.settings.dskey + "/" + encodeURIComponent( controller.settings.loc ) + "?exclude=hourly,flags",
-        dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-		contentType: "application/json; charset=utf-8",
-        shouldRetry: retryCount
-    } ).always( function( forecastData ) {
-		
-		$.ajax( {
-			url: "https://api.darksky.net/forecast/" + controller.settings.dskey + "/" + encodeURIComponent( controller.settings.loc ) + "," +
-						( ( forecastData.daily.data[0].time) || 0 ) + "?exclude=currently,daily,flags",
-			dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-			contentType: "application/json; charset=utf-8",
-			shouldRetry: retryCount
-		} ).always( function( todayData ) {
-
-			$.ajax( {
-				url: "https://api.darksky.net/forecast/" + controller.settings.dskey + "/" + encodeURIComponent( controller.settings.loc ) + "," +
-							( ( forecastData.daily.data[0].time - 86400 ) || 0 ) + "?exclude=currently,flags",
-				dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-				contentType: "application/json; charset=utf-8",
-				shouldRetry: retryCount
-			} ).always( function( yesterdayData ) {
-		
-				$.mobile.loading( "hide" );
-
-				var popup = "<div data-role='popup' id='debugWeather' class='ui-content ui-page-theme-a'><table class='debugWeather'>";
-
-			if (
-					typeof yesterdayData !== "Forbidden" &&
-					typeof yesterdayData.daily.data === "object" &&
-					typeof todayData.hourly.data === "object" &&
-					typeof forecastData === "object" &&
-					validateWeatherValues( [ "humidity", "temperatureLow", "temperatureHigh", "precipIntensity" ], yesterdayData.daily.data[0] ) &&
-					validateWeatherValues( [ "precipIntensity" ], todayData.hourly.data[0] ) &&
-					validateWeatherValues( [ "time" ], forecastData.currently )
-				) {
+        }
 			
-					var country;
-					
-					// Convert the timezone to country ISO3166 code based on string match; America = US, Bermuda = BM, Palau = PW
-					if ( forecastData.timezone.match( /^America.*$/ ) ) { country = "US";
-					} else if ( forecastData.timezone.match( /^Bermuda.*$/ ) ) { country = "BM";
-					} else if ( forecastData.timezone.match( /^Palau.*$/ ) ) { country = "PW";
-					} else { country = forecastData.timezone;
-					}
-					
-					var isMetric = ( ( country === "US" || country === "BM" || country === "PW" ) ? false : true );
+		popup += "<tr><td>" + _( "Adjustment Method" ) + "</td><td>" + getAdjustmentName( controller.options.uwt ) + "</td></tr>" +
+                "<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>";
+            
+	}
 
-					var maxCount = 24;
-			
-					var currentPrecip = 0,
-					yesterdayPrecip = 0,
-					weather,
-					index;
-					
-					for ( index = 0; index < maxCount; index++ ) {
-					
-						// Only use current day rainfall data for the hourly readings prior to the current hour
-						if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
-							currentPrecip += parseFloat( todayData.hourly.data[index].precipIntensity );
-						}
-					
-					}
-				
-					for ( index = 0; index < maxCount; index++ ) {
-						yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
-					}
-			
-					popup += "<tr><td>" + _( "Humidity" ) + "</td><td>" + ( parseFloat( yesterdayData.daily.data[0].humidity ) ).toFixed(0) * 100 + "%</td></tr>" +
-						"<tr><td>" + _( "Min Temp" ) + "</td><td>" + ( isMetric ? Math.round( ( parseInt( yesterdayData.daily.data[0].temperatureLow ) - 32 ) * 5 / 9 ) + "&#176;C" : parseInt( yesterdayData.daily.data[0].temperatureLow ) + "&#176;F" ) + "</td></tr>" +
-						"<tr><td>" + _( "Max Temp" ) + "</td><td>" + ( isMetric ? Math.round( ( parseInt( yesterdayData.daily.data[0].temperatureHigh ) - 32 ) * 5 / 9 ) + "&#176;C" : parseInt( yesterdayData.daily.data[0].temperatureHigh ) + "&#176;F" ) + "</td></tr>" +
-						"<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + ( isMetric ? parseFloat( yesterdayPrecip * 25.4 ).toFixed(1) + "mm" : yesterdayPrecip.toFixed(0) + "\"" ) + "</td></tr>" +
-						"<tr><td>" + _( "Precip Today" ) + "</td><td>" + ( isMetric ? parseFloat( currentPrecip * 25.4 ).toFixed(1) + "mm" : currentPrecip.toFixed(0) + "\"" ) + "</td></tr>" +
-						"<tr><td>" + _( "Adjustment Method" ) + "</td><td>" + getAdjustmentName( controller.options.uwt ) + "</td></tr>" +
-						"<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>";
-				}
+	popup += ( typeof controller.settings.lwc === "number" ? "<tr><td>" + _( "Last Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lwc * 1000 ) ) + "</td></tr>" : "" ) +
+				( typeof controller.settings.lswc === "number" ? "<tr><td>" + _( "Last Successful Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lswc * 1000 ) ) + "</td></tr>" : "" ) +
+				( typeof controller.settings.lupt === "number" ? "<tr><td>" + _( "Last System Reboot" ) + "</td><td>" + dateToString( new Date( controller.settings.lupt * 1000 ) ) + "</td></tr>" : "" ) +
+				"</table></div>";
 
-				popup += ( typeof controller.settings.lwc === "number" ? "<tr><td>" + _( "Last Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lwc * 1000 ) ) + "</td></tr>" : "" ) +
-						 ( typeof controller.settings.lswc === "number" ? "<tr><td>" + _( "Last Successful Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lswc * 1000 ) ) + "</td></tr>" : "" ) +
-						 ( typeof controller.settings.lupt === "number" ? "<tr><td>" + _( "Last System Reboot" ) + "</td><td>" + dateToString( new Date( controller.settings.lupt * 1000 ) ) + "</td></tr>" : "" ) +
-						 "</table></div>";
-
-				openPopup( $( popup ) );
-			} );
-		} );
-	} );
+	openPopup( $( popup ) );
 
     return false;
 }
@@ -3638,22 +3046,6 @@ function setRestriction( id, uwt ) {
     return uwt;
 }
 
-function testAPIKey( key, callback ) {
-    $.ajax( {
-        url: "https://api.wunderground.com/api/" + key + "/conditions/forecast/lang:EN/q/75252.json",
-        dataType: isChromeApp || isWinApp ? "json" : "jsonp",
-        shouldRetry: retryCount
-    } ).done( function( data ) {
-        if ( typeof data.response.error === "object" && data.response.error.type === "keynotfound" ) {
-            callback( false );
-            return;
-        }
-        callback( true );
-    } ).fail( function() {
-        callback( false );
-    } );
-}
-
 function testDSAPIKey( key, callback ) {
     $.ajax( {
         url: "https://api.darksky.net/forecast/" + key + "/" + encodeURIComponent( controller.settings.loc ) + "?exclude=currently,minutely,hourly,daily,alerts",
@@ -3695,35 +3087,7 @@ function bindPanel() {
         return false;
     } );
 
-    panel.find( "a[href='#debugWeather']" ).on( "click", function() { 
-
-		$.mobile.loading( "show" );
-		
-		if ( weather.source === "wunderground" ) { 
-		
-			debugWU();
-		
-		} else if ( weather.source === "darksky" ) {
-			
-			debugDarkSky();
-			
-		} else {
-			
-			$.mobile.loading( "hide" );
-			
-			var popup = "<div data-role='popup' id='debugWeather' class='ui-content ui-page-theme-a'><table class='debugWeather'>";
-		
-			popup += ( typeof controller.settings.lwc === "number" ? "<tr><td>" + _( "Last Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lwc * 1000 ) ) + "</td></tr>" : "" ) +
-					 ( typeof controller.settings.lswc === "number" ? "<tr><td>" + _( "Last Successful Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lswc * 1000 ) ) + "</td></tr>" : "" ) +
-					 ( typeof controller.settings.lupt === "number" ? "<tr><td>" + _( "Last System Reboot" ) + "</td><td>" + dateToString( new Date( controller.settings.lupt * 1000 ) ) + "</td></tr>" : "" ) +
-					 "</table></div>";
-
-			openPopup( $( popup ) );
-		
-		}
-		
-		return false;
-	} );
+    panel.find( "a[href='#debugWeather']" ).on( "click", debugWeather );
 
     panel.find( "a[href='#localization']" ).on( "click", languageSelect );
 
@@ -3777,88 +3141,6 @@ function bindPanel() {
             } );
         } );
         return false;
-    } );
-
-    panel.find( ".show-providers" ).on( "click", function() {
-        $( "#providers" ).popup( "destroy" ).remove();
-
-        storage.get( [ "provider", "wapikey" ], function( data ) {
-            data.provider = data.provider || "yahoo";
-
-            var popup = $(
-                "<div data-role='popup' id='providers' data-theme='a' data-overlay-theme='b'>" +
-                    "<div class='ui-content'>" +
-                        "<form>" +
-                            "<label for='weather_provider'>" + _( "Weather Provider" ) +
-                                "<select data-mini='true' id='weather_provider' class='needsclick'>" +
-                                    "<option value='yahoo'>" + _( "Yahoo!" ) + "</option>" +
-                                    "<option " + ( ( data.provider === "wunderground" ) ? "selected " : "" ) + "value='wunderground'>" + _( "Wunderground" ) + "</option>" +
-									"<option " + ( ( data.provider === "darksky" ) ? "selected " : "" ) + "value='darksky'>" + _( "Dark Sky" ) + "</option>" +
-								"</select>" +
-                            "</label>" +
-                            "<label for='wapikey'>" + _( "Weather API Key" ) +
-								"<input data-mini='true' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' " +
-									"type='text' id='wapikey' value='" + ( ( data.wapikey ) ? data.wapikey : "" ) + "'>" +
-							"</label>" +
-                            "<input type='submit' value='" + _( "Submit" ) + "'>" +
-                        "</form>" +
-                    "</div>" +
-                "</div>"
-            );
-
-            if ( data.provider === "yahoo" ) {
-                popup.find( "#wapikey" ).closest( "label" ).hide();
-            }
-
-            popup.find( "form" ).on( "submit", function( e ) {
-                e.preventDefault();
-
-                var wapikey = $( "#wapikey" ).val(),
-                    provider = $( "#weather_provider" ).val();
-
-                if ( provider === "wunderground" && wapikey === "" ) {
-                    showerror( _( "An API key must be provided for Weather Underground" ) );
-                    return;
-                }
-				
-				if ( provider === "darksky" && wapikey === "" ) {
-                    showerror( _( "An API key must be provided for Dark Sky" ) );
-                    return;
-                }
-
-                storage.set( {
-                    "wapikey": wapikey,
-                    "provider": provider
-                } );
-
-                updateWeather();
-
-                $( "#providers" ).popup( "close" );
-
-                return false;
-            } );
-
-            //Handle provider select change on weather settings
-            popup.on( "change", "#weather_provider", function() {
-                var val = $( this ).val();
-                if ( val === "wunderground" ) {
-                    $( "#wapikey" ).closest( "label" ).show();
-				} if ( val === "darksky" ) {
-					$( "#wapikey" ).closest( "label" ).show();
-                } else {
-                    $( "#wapikey" ).closest( "label" ).hide();
-                }
-                popup.popup( "reposition", {
-                    "positionTo": "window"
-                } );
-            } );
-
-            popup.one( "popupafterclose", function() {
-                document.activeElement.blur();
-                this.remove();
-            } ).popup().enhanceWithin().popup( "open" );
-            return false;
-        } );
     } );
 
     panel.find( ".changePassword > a" ).on( "click", changePassword );
@@ -4144,8 +3426,8 @@ function showOptions( expandItem ) {
 
     list += "<div class='ui-field-contain'>" +
         "<label for='loc'>" + _( "Location" ) + "</label>" +
-		"<button data-mini='true' id='loc' value='" + controller.settings.loc + "'" + ( ( isWUDataValid === true || isDSDataValid === true ) ? " class='green'" : "" ) + ">" +
-			"<span>" + ( typeof weather === "object" ? weather.location : ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) ) + "</span>" +
+		"<button data-mini='true' id='loc' value='" + controller.settings.loc + "'>" +
+			"<span>" + ( typeof weather === "object" ? weather.city + ( weather.source !== "darksky" ? ", " + weather.region : "") : ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) ) + "</span>" +
 			"<a class='ui-btn btn-no-border ui-btn-icon-notext ui-icon-delete ui-btn-corner-all clear-loc'></a>" +
 		"</button></div>";
 
@@ -4262,7 +3544,7 @@ function showOptions( expandItem ) {
     if ( typeof controller.options.uwt !== "undefined" ) {
         list += "<div class='ui-field-contain'><label for='o31' class='select'>" + _( "Weather Adjustment Method" ) +
 				"<button data-helptext='" +
-					_( "Weather adjustment uses Weather Underground data in conjunction with the selected method to adjust the watering percentage." ) +
+					_( "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." ) +
 					"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
 			"</label><select data-mini='true' id='o31'>";
         for ( i = 0; i < getAdjustmentName( "length" ); i++ ) {
@@ -4393,31 +3675,6 @@ function showOptions( expandItem ) {
     list += "</fieldset><fieldset data-role='collapsible' data-theme='b'" +
 		( typeof expandItem === "string" && expandItem === "advanced" ? " data-collapsed='false'" : "" ) + ">" +
 		"<legend>" + _( "Advanced" ) + "</legend>";
-
-	if ( typeof controller.options.uwt !== "undefined" && typeof controller.settings.wtkey !== "undefined" ) {
-		list += "<div class='ui-field-contain'><label for='wtkey'>" + _( "Wunderground Key" ).replace( "Wunderground", "Wunder&shy;ground" ) +
-			"<button data-helptext='" +
-				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Weather Underground." ) +
-				"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
-		"</label>" +
-		"<table>" +
-			"<tr style='width:100%;vertical-align: top;'>" +
-				"<td style='width:100%'>" +
-					"<div class='" +
-						( weatherKeyFail === true ? "red " : ( ( controller.settings.wtkey && controller.settings.wtkey !== "" ) ? "green " : "" ) ) +
-						"ui-input-text controlgroup-textinput ui-btn ui-body-inherit ui-corner-all ui-mini ui-shadow-inset ui-input-has-clear'>" +
-							"<input data-role='none' data-mini='true' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' " +
-								"type='text' id='wtkey' value='" + controller.settings.wtkey + "'>" +
-							"<a href='#' tabindex='-1' aria-hidden='true' data-helptext='" + _( "An invalid API key has been detected." ) +
-								"' class='" + ( weatherKeyFail === true ? "" : "hidden " ) +
-								"help-icon ui-input-clear ui-btn ui-icon-alert ui-btn-icon-notext ui-corner-all'>" +
-							"</a>" +
-					"</div>" +
-				"</td>" +
-				"<td><button class='noselect' data-mini='true' id='verify-api'>" + _( "Verify" ) + "</button></td>" +
-			"</tr>" +
-		"</table></div>";
-	}
 
 	if ( typeof controller.options.uwt !== "undefined" && typeof controller.settings.dskey !== "undefined" ) {
 		list += "<div class='ui-field-contain'><label for='dskey'>" + _( "Dark Sky Key" ).replace( "Darksky", "Dark&shy;sky" ) +
@@ -4565,9 +3822,6 @@ function showOptions( expandItem ) {
 	} );
 
     page.find( "#loc" ).on( "click", function() {
-
-        $.mobile.loading( "show" );
-
         var loc = $( this );
 
         loc.prop( "disabled", true );
@@ -4596,13 +3850,6 @@ function showOptions( expandItem ) {
                         loc.find( "span" ).text( result );
                     } );
                 }
-                validateWULocation( selected, function( isValid ) {
-                    if ( isValid ) {
-                        loc.addClass( "green" );
-                    } else if ( !isValid ) {
-                        loc.removeClass( "green" );
-                    }
-                } );
                 header.eq( 2 ).prop( "disabled", false );
                 page.find( ".submit" ).addClass( "hasChanges" );
             }
@@ -4748,24 +3995,6 @@ function showOptions( expandItem ) {
         }
     } );
 
-    page.find( "#verify-api" ).on( "click", function() {
-        var key = page.find( "#wtkey" ),
-            button = $( this );
-
-        button.prop( "disabled", true );
-
-        testAPIKey( key.val(), function( result ) {
-            if ( result === true ) {
-                key.parent().find( ".ui-icon-alert" ).hide();
-                key.parent().removeClass( "red" ).addClass( "green" );
-            } else {
-                key.parent().find( ".ui-icon-alert" ).removeClass( "hidden" ).show();
-                key.parent().removeClass( "green" ).addClass( "red" );
-            }
-            button.prop( "disabled", false );
-        } );
-    } );
-	
     page.find( "#verify-dsapi" ).on( "click", function() {
         var key = page.find( "#dskey" ),
             button = $( this );
@@ -4902,23 +4131,10 @@ function showOptions( expandItem ) {
     page.find( "#o31" ).on( "change", function() {
 
         // Switch state of water level input based on weather algorithm status
-        page.find( "#o23" ).prop( "disabled", ( parseInt( this.value ) === 0 || page.find( "#wtkey" ).val() === "" ? false : true ) );
+        page.find( "#o23" ).prop( "disabled", ( parseInt( this.value ) === 0 ? false : true ) );
 
         // Switch the state of adjustment options based on the selected method
         page.find( "#wto" ).parents( ".ui-field-contain" ).toggleClass( "hidden", parseInt( this.value ) === 0 ? true : false );
-    } );
-
-    page.find( "#wtkey" ).on( "change input", function() {
-
-        // Hide the invalid key status after change
-        page.find( "#wtkey" ).siblings( ".help-icon" ).hide();
-        page.find( "#wtkey" ).parent().removeClass( "red green" );
-
-        // Switch state of weather algorithm input based on API key status
-        if ( this.value === "" ) {
-	        page.find( "#wto" ).parents( ".ui-field-contain" ).toggleClass( "hidden", true );
-            page.find( "#o23" ).prop( "disabled", false );
-        }
     } );
 
     page.find( "#o49" ).on( "click", function() {
@@ -9545,11 +8761,6 @@ function importConfig( data ) {
             }
         }
 
-        // Import WUnderground API key, if available
-        if ( data.settings.hasOwnProperty( "wtkey" ) && data.settings.wtkey !== "" && checkOSVersion( 210 ) ) {
-            co += "&wtkey=" + data.settings.wtkey;
-        }
-
         // Import Dark Sky API key, if available
         if ( data.settings.hasOwnProperty( "dskey" ) && data.settings.dskey !== "" && checkOSVersion( 210 ) ) {
             co += "&dskey=" + data.settings.dskey;
@@ -9769,7 +8980,7 @@ var showAbout = ( function() {
                     "</li>" +
                 "</ul>" +
                 "<p class='smaller'>" +
-                    _( "App Version" ) + ": 1.8.2" +
+                    _( "App Version" ) + ": 1.8.5" +
                     "<br>" + _( "Firmware" ) + ": <span class='firmware'></span>" +
                     "<br><span class='hardwareLabel'>" + _( "Hardware Version" ) + ":</span> <span class='hardware'></span>" +
                 "</p>" +
@@ -10664,7 +9875,7 @@ function removeNotification( button ) {
 function checkFirmwareUpdate() {
 
     // Update checks are only be available for Arduino firmwares
-    if ( checkOSVersion( 200 ) ) {
+    if ( checkOSVersion( 200 ) && ( getHWVersion() === "3.0" || isOSPi() ) ) {
 
         // Github API to get releases for OpenSprinkler firmware
         $.getJSON( "https://api.github.com/repos/opensprinkler/opensprinkler-firmware/releases" ).done( function( data ) {
@@ -12264,7 +11475,7 @@ function languageSelect() {
     /*
     	Commented list of languages used by the string parser to identify strings for translation
 
-		{af: _("Afrikaans"), am: _("Amharic"), zh: _("Chinese"), hr: _("Croatian"), cs: _("Czech"),
+		{af: _("Afrikaans"), am: _("Amharic"), zh: _("Chinese"), hr: _("Croatian"), cs: _("Czech"), et: _("Estonian")
 		nl: _("Dutch"), en: _("English"), pes: _("Farsi"), fr: _("French"), de: _("German"), bg: _("Bulgarian"),
 		el: _("Greek"), he: _("Hebrew"), hu: _("Hungarian"), is: _("Icelandic"), it: _("Italian"), lv: _("Latvian"),
 		mn: _("Mongolian"), no: _("Norwegian"), pl: _("Polish"), pt: _("Portuguese"), ru: _("Russian"), ta: _("Tamil"),
@@ -12276,7 +11487,7 @@ function languageSelect() {
                 "<li data-role='list-divider' data-theme='b' class='center' data-translate='Localization'>" + _( "Localization" ) + "</li>",
 
         codes = { af: "Afrikaans", am: "Amharic", bg: "Bulgarian", zh: "Chinese", hr: "Croatian", cs: "Czech", nl: "Dutch",
-				en: "English", pes: "Farsi", fr: "French", de: "German", el: "Greek", he: "Hebrew", hu: "Hungarian",
+				en: "English", et: "Estonian", pes: "Farsi", fr: "French", de: "German", el: "Greek", he: "Hebrew", hu: "Hungarian",
 				is: "Icelandic", it: "Italian", lv: "Latvian", mn: "Mongolian", no: "Norwegian", pl: "Polish", pt: "Portuguese",
 				ru: "Russian", sk: "Slovak", sl: "Slovenian", es: "Spanish", ta: "Tamil", th: "Thai", tr: "Turkish", sv: "Swedish", ro: "Romanian" };
 
