@@ -2625,21 +2625,23 @@ function updateWeather() {
 
 			currentCoordinates = data.location;
 
-            if ( data.source === "darksky" ) {
+            coordsToLocation( data.location[ 0 ], data.location[ 1 ], function( result ) {
 
-                coordsToLocation( data.location[ 0 ], data.location[ 1 ], function( result ) {
+                if ( data.source === "darksky" ) {
+
                     data.city =  result;
-                    updateWeatherBox();
-                } );
 
-            }
+                }
 
-            weather = data;
-			data.lastUpdated = new Date().getTime();
-			data.providedLocation = controller.settings.loc;
-            localStorage.weatherData = JSON.stringify( data );
+                weather = data;
+                data.lastUpdated = new Date().getTime();
+                data.providedLocation = controller.settings.loc;
+                localStorage.weatherData = JSON.stringify( data );
+        
+                finishWeatherUpdate();
+                
+            } );
 
-			finishWeatherUpdate();
 		}
 	} );
 }
