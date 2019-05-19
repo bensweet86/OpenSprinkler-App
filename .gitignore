@@ -43,3 +43,5 @@ log.txt
 *.sublime-project
 *.sublime-workspace
 npm-debug.log*
+www/css/app.css
+www/js/app.js

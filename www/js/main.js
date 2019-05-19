@@ -2600,13 +2600,13 @@ function updateWeather() {
 
         url = "http://" + controller.settings.wurl + "/weatherData?loc=" +
         encodeURIComponent( controller.settings.loc ) +
-        "&dskey=" + controller.settings.dskey
+        "&dskey=" + controller.settings.dskey;
 
     } else {
 
         url = "http://weather.opensprinkler.com/weatherData?loc=" +
         encodeURIComponent( controller.settings.loc ) +
-        "&dskey=" + controller.settings.dskey
+        "&dskey=" + controller.settings.dskey;
 
     }
 
@@ -2804,12 +2804,12 @@ function makeForecast() {
 			"<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
 			"<span>" + formatTemp( weather.temp ) + "</span><br>" +
 			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-            "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
+            "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
             
         if ( weather.source === "darksky" ){
         
             list += "<br>" +
-                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>"
+                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>";
     
         }
 
@@ -2829,12 +2829,12 @@ function makeForecast() {
 				"<span>" + _( "Low" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_min ) + "  </span>" +
 				"<span>" + _( "High" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_max ) + "</span><br>" +
 				"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-                "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>"
+                "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
         
         if ( weather.source === "darksky" ){
         
             list += "<br>" +
-                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.forecast[ i ].precip ) + "</span>"
+                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.forecast[ i ].precip ) + "</span>";
 
         }
 
@@ -2959,19 +2959,19 @@ function debugWeather() {
 	var popup = "<div data-role='popup' id='debugWeather' class='ui-content ui-page-theme-a'><table class='debugWeather'>";
 
 	if ( weather ) {
-        popup += "<tr><td>" + _( "Humidity" ) + "</td><td>" + weather.humidity + "%</td></tr>"
+        popup += "<tr><td>" + _( "Humidity" ) + "</td><td>" + weather.humidity + "%</td></tr>";
         
         if ( weather.source === "darksky" ){
 
             popup += "<tr><td>" + _( "Min Temp" ) + "</td><td>" + formatTemp( weather.minTemp ) + "</td></tr>" +
 				    "<tr><td>" + _( "Max Temp" ) + "</td><td>" + formatTemp( weather.maxTemp ) + "</td></tr>" +
 				    "<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + formatPrecip( weather.yesterdayPrecip ) + "</td></tr>" +
-				    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.currentPrecip ) + "</td></tr>"
+				    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.currentPrecip ) + "</td></tr>";
 
         } else {
 
             popup += "<tr><td>" + _( "Mean Temp" ) + "</td><td>" + formatTemp( weather.temp ) + "</td></tr>" +
-                    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.precip ) + "</td></tr>"
+                    "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.precip ) + "</td></tr>";
 
         }
 			
