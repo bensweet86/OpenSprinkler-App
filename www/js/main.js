@@ -2598,13 +2598,13 @@ function updateWeather() {
 
     if ( typeof controller.settings.wurl !== "undefined" && controller.settings.wurl !== "" ) {
 
-        url = "http://" + controller.settings.wurl + "/weatherData?loc=" +
+        url = currPrefix + controller.settings.wurl + "/weatherData?loc=" +
         encodeURIComponent( controller.settings.loc ) +
         "&dskey=" + controller.settings.dskey;
 
     } else {
 
-        url = "http://weather.opensprinkler.com/weatherData?loc=" +
+        url = currPrefix+ "weather.opensprinkler.com/weatherData?loc=" +
         encodeURIComponent( controller.settings.loc ) +
         "&dskey=" + controller.settings.dskey;
 
