@@ -3894,16 +3894,10 @@ function showOptions( expandItem ) {
 		( typeof expandItem === "string" && expandItem === "advanced" ? " data-collapsed='false'" : "" ) + ">" +
 		"<legend>" + _( "Advanced" ) + "</legend>";
 
-	if ( typeof controller.options.uwt !== "undefined" && typeof controller.settings.dskey !== "undefined" ) {
+	if ( checkOSVersion( 218 ) /*&& typeof controller.options.uwt !== "undefined" && typeof controller.settings.dskey !== "undefined"*/ ) {
 		list += "<div class='ui-field-contain'><label for='dskey'>" + _( "Dark Sky Key" ).replace( "Darksky", "Dark&shy;sky" ) +
 			"<button data-helptext='" +
-				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Dark Sky." );
-	}
-
-	if ( checkOSVersion( 219 ) && typeof controller.options.uwt !== "undefined" && typeof controller.settings.wto === "object" ) {
-		list += "<div class='ui-field-contain'><label for='wtkey'>" + _( "Wunderground Key" ).replace( "Wunderground", "Wunder&shy;ground" ) +
-			"<button data-helptext='" +
-				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Weather Underground." ) +
+				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Dark Sky." ) +
 				"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
 		"</label>" +
 		"<table>" +
@@ -3921,6 +3915,20 @@ function showOptions( expandItem ) {
 					"</div>" +
 				"</td>" +
 				"<td><button class='noselect' data-mini='true' id='verify-dsapi'>" + _( "Verify" ) + "</button></td>" +
+			"</tr>" +
+		"</table></div>";
+	}
+
+	if ( checkOSVersion( 218 ) /*&& typeof controller.options.uwt !== "undefined" && typeof controller.settings.wto === "object"*/ ) {
+		list += "<div class='ui-field-contain'><label for='wtkey'>" + _( "Wunderground Key" ).replace( "Wunderground", "Wunder&shy;ground" ) +
+			"<button data-helptext='" +
+				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Weather Underground." ) +
+				"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
+		"</label>" +
+		"<table>" +
+			"<tr style='width:100%;vertical-align: top;'>" +
+				"<td style='width:100%'>" +
+					"<div class='" +
 						( ( controller.settings.wto.key && controller.settings.wto.key !== "" ) ? "green " : "" ) +
 						"ui-input-text controlgroup-textinput ui-btn ui-body-inherit ui-corner-all ui-mini ui-shadow-inset ui-input-has-clear'>" +
 							"<input data-role='none' data-mini='true' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' " +
