@@ -27,7 +27,8 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
 	isFileCapable = !isiOS && !isAndroid && !isIEMobile && !isOSXApp &&
 					!isWinApp && window.FileReader,
 	isTouchCapable = "ontouchstart" in window || "onmsgesturechange" in window,
-	isMetric = ( [ "US", "BM", "PW" ].indexOf( navigator.languages[ 0 ].split( "-" )[ 1 ] ) === -1 ),
+	languages = ( navigator.languages) ? navigator.languages[ 0 ].split( "-" )[ 1 ] : navigator.languages,
+	isMetric = ( [ "US", "BM", "PW" ].indexOf( languages ) === -1 ),
 
 	// Small wrapper to handle Chrome vs localStorage usage
 	storage = {
