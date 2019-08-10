@@ -115,11 +115,11 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
 	pageHistoryCount = -1,
 	goingBack = false,
 
-    // Array to hold all notifications currently displayed within the app
-    notifications = [],
-    timers = {},
-    curr183, currIp, currPrefix, currAuth, currPass, currAuthUser,
-    currAuthPass, currLocal, currLang, language, deviceip, errorTimeout, weather, darkSkyKeyFail, openPanel;
+	// Array to hold all notifications currently displayed within the app
+	notifications = [],
+	timers = {},
+	curr183, currIp, currPrefix, currAuth, currPass, currAuthUser,
+	currAuthPass, currLocal, currLang, language, deviceip, errorTimeout, weather, darkSkyKeyFail, openPanel;
 
 // Prevent errors from bubbling up on Windows
 if ( isWinApp ) {
@@ -2701,12 +2701,12 @@ function formatTemp( temp ) {
 }
 
 function formatPrecip( precip ) {
-    if ( isMetric ) {
-        precip = Math.round( precip * 25.4 *10 ) / 10 + " mm";
-    } else {
-        precip = Math.round( precip * 100 ) / 100 + " in";
-    }
-    return precip;
+	if ( isMetric ) {
+		precip = Math.round( precip * 25.4 *10 ) / 10 + " mm";
+	} else {
+		precip = Math.round( precip * 100 ) / 100 + " in";
+	}
+	return precip;
 }
 
 function hideWeather() {
@@ -2719,7 +2719,7 @@ function finishWeatherUpdate() {
 }
 
 function updateWeather() {
-    var now = new Date().getTime(),
+	var now = new Date().getTime(),
         url;
 
 	if ( weather && weather.providedLocation === controller.settings.loc && now - weather.lastUpdated < 60 * 60 * 100 ) {
@@ -2794,8 +2794,8 @@ function updateWeather() {
 }
 
 function updateWeatherBox() {
-    $( "#weather" )
-        .html( "<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
+	$( "#weather" )
+		.html( "<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
 			"<div class='inline tight'>" + formatTemp( weather.temp ) + "</div><br><div class='inline location tight'>" + ( weather.city || "" ) + "</div>" +
 			( typeof weather.alert === "object" ? "<div><button class='tight help-icon btn-no-border ui-btn ui-icon-alert ui-btn-icon-notext ui-corner-all'></button>" + weather.alert.type + "</div>" : "" ) )
 		.off( "click" ).on( "click", function() {
@@ -2951,16 +2951,16 @@ function makeForecast() {
 			"<div title='" + weather.description + "' class='wicon cond" + weather.icon + "'></div>" +
 			"<span>" + formatTemp( weather.temp ) + "</span><br>" +
 			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-            "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
+			"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
 
-        if ( weather.source === "darksky" ){
+    if ( weather.weatherProvider === "DarkSky" ){
 
-            list += "<br>" +
-                    "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>";
+        list += "<br>" +
+                "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>";
 
-        }
+    }
 
-		list += "</li>";
+	list += "</li>";
 
 	for ( i = 1; i < weather.forecast.length; i++ ) {
 		date = new Date( weather.forecast[ i ].date * 1000 );
@@ -2969,14 +2969,14 @@ function makeForecast() {
 		sunrise = times[ 0 ];
 		sunset = times[ 1 ];
 
-        list += "<li data-icon='false' class='center'>" +
-				"<div>" + date.toLocaleDateString(locale) + "</div><br>" +
+		list += "<li data-icon='false' class='center'>" +
+				"<div>" + date.toLocaleDateString() + "</div><br>" +
 				"<div title='" + weather.forecast[ i ].description + "' class='wicon cond" + weather.forecast[ i ].icon + "'></div>" +
 				"<span>" + _( weekdays[ date.getDay() ] ) + "</span><br>" +
 				"<span>" + _( "Low" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_min ) + "  </span>" +
 				"<span>" + _( "High" ) + "</span><span>: " + formatTemp( weather.forecast[ i ].temp_max ) + "</span><br>" +
 				"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
-                "<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
+				"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
 
         if ( weather.weatherProvider === "DarkSky" ){
 
@@ -2986,7 +2986,7 @@ function makeForecast() {
         }
 
 		list += "</li>";
-    }
+	}
 
 	return list;
 }
@@ -3140,7 +3140,7 @@ function debugWU() {
 
 	if ( weather ) {
 		popup += "<tr><td>" + _( "Humidity" ) + "</td><td>" + weather.humidity + "%</td></tr>"
-			if ( weather.source === "darksky" ){
+			if ( weather.weatherProvider === "DarkSky" ){
 
 				popup += "<tr><td>" + _( "Min Temp" ) + "</td><td>" + formatTemp( weather.minTemp ) + "</td></tr>" +
 						"<tr><td>" + _( "Max Temp" ) + "</td><td>" + formatTemp( weather.maxTemp ) + "</td></tr>" +
@@ -3636,7 +3636,7 @@ function showOptions( expandItem ) {
 	list += "<div class='ui-field-contain'>" +
 		"<label for='loc'>" + _( "Location" ) + "</label>" +
 		"<button data-mini='true' id='loc' value='" + ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) + "'>" +
-			"<span>" + ( typeof weather === "object" ? weather.city + ( weather.source !== "darksky" ? ", " + weather.region : "") : ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) ) + "</span>" +
+			"<span>" + ( typeof weather === "object" ? weather.city + ( weather.weatherProvider !== "DarkSky" ? ", " + weather.region : "") : ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) ) + "</span>" +
 			"<a class='ui-btn btn-no-border ui-btn-icon-notext ui-icon-delete ui-btn-corner-all clear-loc'></a>" +
 		"</button></div>";
 
@@ -3805,15 +3805,15 @@ function showOptions( expandItem ) {
 		if ( typeof controller.options.fpr0 !== "undefined" ) {
 			list += "<div class='ui-field-contain'>" +
 				    "<fieldset data-role='controlgroup' class='ui-mini center' data-type='horizontal'>" +
-				        "<legend class='left'>" + _( "Attached Sensor Type" ) + "</legend>" +
-				        "<input class='noselect' type='radio' name='o21' id='o21-none' value='0'" + ( controller.options.urs === 0 ? " checked='checked'" : "" ) + ">" +
-				        "<label for='o21-none'>" + _( "None" ) + "</label>" +
-				        "<input class='noselect' type='radio' name='o21' id='o21-rain' value='1'" + ( controller.options.urs === 1 ? " checked='checked'" : "" ) + ">" +
-				        "<label for='o21-rain'>" + _( "Rain" ) + "</label>" +
-				        "<input class='noselect' type='radio' name='o21' id='o21-flow' value='2'" + ( controller.options.urs === 2 ? " checked='checked'" : "" ) + ">" +
-				        "<label for='o21-flow'>" + _( "Flow" ) + "</label>" +
-				        ( checkOSVersion( 217 ) ? "<input class='noselect' type='radio' name='o21' id='o21-program' value='240'" + ( controller.options.urs === 240 ? " checked='checked'" : "" ) + ">" +
-				        	"<label for='o21-program'>" + _( "Program Switch" ) + "</label>" : "" ) +
+						"<legend class='left'>" + _( "Attached Sensor Type" ) + "</legend>" +
+						"<input class='noselect' type='radio' name='o21' id='o21-none' value='0'" + ( controller.options.urs === 0 ? " checked='checked'" : "" ) + ">" +
+						"<label for='o21-none'>" + _( "None" ) + "</label>" +
+						"<input class='noselect' type='radio' name='o21' id='o21-rain' value='1'" + ( controller.options.urs === 1 ? " checked='checked'" : "" ) + ">" +
+						"<label for='o21-rain'>" + _( "Rain" ) + "</label>" +
+						"<input class='noselect' type='radio' name='o21' id='o21-flow' value='2'" + ( controller.options.urs === 2 ? " checked='checked'" : "" ) + ">" +
+						"<label for='o21-flow'>" + _( "Flow" ) + "</label>" +
+						( checkOSVersion( 217 ) ? "<input class='noselect' type='radio' name='o21' id='o21-program' value='240'" + ( controller.options.urs === 240 ? " checked='checked'" : "" ) + ">" +
+						"<label for='o21-program'>" + _( "Program Switch" ) + "</label>" : "" ) +
 				    "</fieldset>" +
 				"</div>" +
 				( checkOSVersion( 217 ) ? "<label id='prgswitch' class='center smaller" + ( controller.options.urs === 240 ? "" : " hidden" ) + "'>" +
@@ -3898,6 +3898,7 @@ function showOptions( expandItem ) {
 		list += "<div class='ui-field-contain'><label for='dskey'>" + _( "Dark Sky Key" ).replace( "Darksky", "Dark&shy;sky" ) +
 			"<button data-helptext='" +
 				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Dark Sky." );
+	}
 
 	if ( checkOSVersion( 219 ) && typeof controller.options.uwt !== "undefined" && typeof controller.settings.wto === "object" ) {
 		list += "<div class='ui-field-contain'><label for='wtkey'>" + _( "Wunderground Key" ).replace( "Wunderground", "Wunder&shy;ground" ) +
@@ -4231,7 +4232,6 @@ function showOptions( expandItem ) {
 			page.find( "#prgswitch" ).addClass( "hidden" );
 		}
 	} );
-
 
 	page.find( "#verify-api" ).on( "click", function() {
 		var key = page.find( "#wtkey" ),
@@ -11836,7 +11836,6 @@ function languageSelect() {
 
 	/*
 		Commented list of languages used by the string parser to identify strings for translation
-
 		{af: _("Afrikaans"), am: _("Amharic"), zh: _("Chinese"), hr: _("Croatian"), cs: _("Czech"), et: _("Estonian")
 		nl: _("Dutch"), en: _("English"), pes: _("Farsi"), fr: _("French"), de: _("German"), bg: _("Bulgarian"),
 		el: _("Greek"), he: _("Hebrew"), hu: _("Hungarian"), is: _("Icelandic"), it: _("Italian"), lv: _("Latvian"),
