@@ -20,14 +20,12 @@ var WEATHER_SERVER_URL = "weather.opensprinkler.com";
 var isIEMobile = /IEMobile/.test( navigator.userAgent ),
 	isAndroid = /Android|\bSilk\b/.test( navigator.userAgent ),
 	isiOS = /iP(ad|hone|od)/.test( navigator.userAgent ),
-	isFireFoxOS = /^.*?\Mobile\b.*?\Firefox\b.*?$/m.test( navigator.userAgent ),
 	isFireFox = /Firefox/.test( navigator.userAgent ),
 	isWinApp = /MSAppHost/.test( navigator.userAgent ),
-	isBB10 = /BB10/.test( navigator.userAgent ),
 	isOSXApp = isOSXApp || false,
 	isChromeApp = typeof chrome === "object" && typeof chrome.storage === "object",
-	isFileCapable = !isiOS && !isAndroid && !isIEMobile && !isOSXApp && !isFireFoxOS &&
-					!isWinApp && !isBB10 && window.FileReader,
+	isFileCapable = !isiOS && !isAndroid && !isIEMobile && !isOSXApp &&
+					!isWinApp && window.FileReader,
 	isTouchCapable = "ontouchstart" in window || "onmsgesturechange" in window,
 	isMetric = ( [ "US", "BM", "PW" ].indexOf( navigator.languages[ 0 ].split( "-" )[ 1 ] ) === -1 ),
 
@@ -190,7 +188,7 @@ $( document )
 		} catch ( err ) {}
 	}, 500 );
 
-	// For Android, Blackberry and Windows Phone devices catch the back button and redirect it
+	// For Android and Windows Phone devices catch the back button and redirect it
 	$.mobile.document.on( "backbutton", function() {
 		if ( isIEMobile && $.mobile.document.data( "iabOpen" ) ) {
 			return false;
@@ -390,9 +388,7 @@ $( document )
 } )
 .on( "popupafterclose", function() {
 
-	if ( !isBB10 ) {
-		$( ".ui-page-active" ).children().add( "#sprinklers-settings" ).removeClass( "blur-filter" );
-	}
+	$( ".ui-page-active" ).children().add( "#sprinklers-settings" ).removeClass( "blur-filter" );
 
 	// When a popup is closed, change the header back to the default color
 	try {
@@ -400,9 +396,7 @@ $( document )
 	} catch ( err ) {}
 } )
 .on( "popupbeforeposition", function() {
-	if ( !isBB10 ) {
-		$( ".ui-page-active" ).children().add( "#sprinklers-settings" ).addClass( "blur-filter" );
-	}
+	$( ".ui-page-active" ).children().add( "#sprinklers-settings" ).addClass( "blur-filter" );
 } )
 .on( "popupbeforeposition", "#localization", checkCurrLang )
 .one( "pagebeforeshow", "#loadingPage", initApp );
@@ -440,7 +434,7 @@ function initApp() {
 				navigator.app.clearCache();
 			} catch ( err ) {}
 		} );
-	} else if ( isFireFoxOS || isFireFox ) {
+	} else if ( isFireFox ) {
 
 		// Allow cross domain AJAX requests in FireFox OS
 		$.ajaxSetup( {
@@ -458,7 +452,7 @@ function initApp() {
 
 	//After jQuery mobile is loaded set initial configuration
 	$.mobile.defaultPageTransition =
-		( isAndroid || isIEMobile || isFireFoxOS || isBB10 ) ? "fade" : "slide";
+		( isAndroid || isIEMobile ) ? "fade" : "slide";
 	$.mobile.hoverDelay = 0;
 	$.mobile.activeBtnClass = "activeButton";
 
@@ -3197,7 +3191,7 @@ function getAdjustmentMethod( id ) {
         { name: _( "Manual" ), id: 0 },
         { name: "Zimmerman", id: 1 },
         { name: _( "Auto Rain Delay" ), id: 2, minVersion: 216 },
-		{ name: "Evapotranspiration (ET)", id: 3 }
+		{ name: "Evapotranspiration (ET)", id: 3, minVersion: 216 }
     ];
 
     if ( id === undefined ) {
@@ -4092,7 +4086,9 @@ function showOptions( expandItem ) {
 
 					// Update the PWS location (either with the PWS station or reset to undefined)
 					var wtoButton = page.find( "#wto" );
-					if ( wtoButton ) {
+
+					// The value will be undefined if running an older HW version without an SD card.
+					if ( wtoButton && wtoButton.val() !== undefined ) {
 						wtoButton.val( escapeJSON( $.extend( {}, unescapeJSON( wtoButton.val() ), { pws: station || "" } ) ) );
 					}
 
@@ -9060,6 +9056,16 @@ function importConfig( data ) {
 			co += "&o36=1";
 		}
 
+		// Import Weather Adjustment Options, if available
+		if ( typeof data.settings.wto === "object" && checkOSVersion( 215 ) ) {
+			co += "&wto=" + escapeJSON( data.settings.wto );
+		}
+
+		// Import IFTTT Key, if available
+		if ( typeof data.settings.ifkey === "string" && checkOSVersion( 217 ) ) {
+			co += "&ifkey=" + data.settings.ifkey;
+		}
+
 		co += "&" + ( isPi ? "o" : "" ) + "loc=" + data.settings.loc;
 
 		for ( i = 0; i < data.stations.snames.length; i++ ) {
@@ -9262,7 +9268,7 @@ var showAbout = ( function() {
 					"</li>" +
 				"</ul>" +
 				"<p class='smaller'>" +
-					_( "App Version" ) + ": 2.0.1" +
+					_( "App Version" ) + ": 2.0.3" +
 					"<br>" + _( "Firmware" ) + ": <span class='firmware'></span>" +
 					"<br><span class='hardwareLabel'>" + _( "Hardware Version" ) + ":</span> <span class='hardware'></span>" +
 				"</p>" +
@@ -11418,6 +11424,7 @@ function takePicture( callback ) {
 	navigator.camera.getPicture( callback, function() {}, {
 		quality: 50,
 		destinationType: Camera.DestinationType.DATA_URL,
+		sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
 		allowEdit: true,
 		targetWidth: 200,
 		targetHeight: 200

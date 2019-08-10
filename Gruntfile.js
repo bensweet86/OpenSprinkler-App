@@ -117,18 +117,6 @@
 						expand: true
 					} ]
 				},
-				firefox: {
-					options: {
-						archive: "build/firefox/com.albahra.sprinklers.zip"
-					},
-					files: [ {
-						src: [ "css/**", "js/**", "img/**", "locale/**", "*.html" ],
-						cwd: "www/",
-						expand: true
-					}, {
-						src: [ "manifest.webapp", "res/firefox/**" ]
-					} ]
-				},
 				chrome: {
 					options: {
 						archive: "build/chrome/com.albahra.sprinklers.zip"
@@ -139,16 +127,6 @@
 						expand: true
 					}, {
 						src: [ "manifest.json", "chrome.js", "res/chrome/**" ]
-					} ]
-				},
-				blackberry10: {
-					options: {
-						archive: "build/blackberry10/com.albahra.sprinklers.zip"
-					},
-					files: [ {
-						src: [ "bb10app.bar" ],
-						cwd: "platforms/blackberry10/build/device/",
-						expand: true
 					} ]
 				}
 			},
@@ -217,12 +195,9 @@
 				symres: {
 					command: "cd www && ln -s ../res res && cd .."
 				},
-				blackberry10: {
-					command: "cordova build blackberry10 --release"
-				},
 				pushBump: {
 					command: [
-						"git add www/js/main.js source/osx/Resources/OpenSprinkler-Info.plist config.xml manifest.json manifest.webapp package.json",
+						"git add www/js/main.js source/osx/Resources/OpenSprinkler-Info.plist config.xml manifest.json package.json",
 						"git commit -m 'Base: Increment version number'",
 						"git push"
 					].join( "&&" )
@@ -277,7 +252,7 @@
 						} ]
 				},
 				manifests: {
-					src: [ "manifest.json", "manifest.webapp", "package.json" ],
+					src: [ "manifest.json", "package.json" ],
 					overwrite: true,
 					replacements: [ {
 						from: /"version": "([\d|\.]+)"/g,
@@ -320,7 +295,7 @@
 		grunt.registerTask( "makeFW", [ "buildFW", "compress:makeFW", "clean:makeFW" ] );
 		grunt.registerTask( "pushFW", [ "makeFW", "shell:updateUI", "clean:pushFW" ] );
 		grunt.registerTask( "pushBetaFW", [ "makeFW", "shell:updateBetaUI", "clean:pushFW" ] );
-		grunt.registerTask( "build", [ "default", "shell:symres", "shell:blackberry10", "compress:firefox", "compress:chrome", "compress:blackberry10", "pushFW", "clean:symres" ] );
+		grunt.registerTask( "build", [ "default", "shell:symres", "compress:chrome", "pushFW", "clean:symres" ] );
 		grunt.registerTask( "bump", [ "default", "replace:about", "replace:osx", "replace:phonegap", "replace:manifests", "shell:pushBump" ] );
 
 	};
