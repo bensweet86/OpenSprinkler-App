@@ -3944,7 +3944,7 @@ function showOptions( expandItem ) {
 		"</label>";
 	}
 
-	if ( typeof controller.options.sn2t !== "undefined" ) {
+	if ( typeof controller.options.sn2t !== "undefined" && checkOSVersion( 219 ) ) {
 		list += generateSensorOptions( keyIndex.sn2t, controller.options.sn2t, 2 );
 	}
 
@@ -4154,7 +4154,7 @@ function showOptions( expandItem ) {
 	list += "<button data-mini='true' class='center-div reset-options'>" + _( "Reset All Options" ) + "</button>";
 	list += "<button data-mini='true' class='center-div reset-stations'>" + _( "Reset All Station Data" ) + "</button>";
 
-	if ( controller.options.hwv >= 30 && controller.options.hwv >= 40 ) {
+	if ( controller.options.hwv >= 30 && controller.options.hwv < 40 ) {
 		list += "<hr class='divider'><button data-mini='true' class='center-div reset-wireless'>" + _( "Reset Wireless Settings" ) + "</button>";
 	}
 
@@ -5926,7 +5926,12 @@ function changeStatus( seconds, color, line, onclick ) {
 		html += _( "Current" ) + ": " + controller.settings.curr + " mA ";
 	}
 
-	if ( isControllerConnected() && controller.options.urs === 2 && typeof controller.settings.flcrt !== "undefined" && typeof controller.settings.flwrt !== "undefined" ) {
+	if (
+		isControllerConnected() &&
+		( controller.options.urs === 2 || controller.options.sn1t === 2 ) &&
+		typeof controller.settings.flcrt !== "undefined" &&
+		typeof controller.settings.flwrt !== "undefined"
+	) {
 		html += "<span style='padding-left:5px'>" + _( "Flow" ) + ": " + ( flowCountToVolume( controller.settings.flcrt ) / ( controller.settings.flwrt / 60 ) ).toFixed( 2 ) + " L/min</span>";
 	}
 
@@ -7463,10 +7468,14 @@ var getLogs = ( function() {
 						date.getUTCMinutes(), date.getUTCSeconds() );
 
 				if ( typeof station === "string" ) {
-					if ( station === "rs" ) {
-						station = stations.length - 2;
-					} else if ( station === "rd" ) {
+					if ( station === "rd" ) {
 						station = stations.length - 1;
+					} else if ( station === "s1" ) {
+						station = stations.length - 3;
+					} else if ( station === "s2" ) {
+						station = stations.length - 2;
+					} else if ( station === "rs" ) {
+						station = stations.length - 2;
 					} else {
 						return;
 					}
@@ -7510,6 +7519,16 @@ var getLogs = ( function() {
 						name = _( "Rain Delay" );
 						group = name;
 						shortname = _( "RD" );
+					} else if ( this[ 1 ] === "s1" ) {
+						className = "delayed";
+						name = controller.options.sn1t === 3 ? _( "Soil Sensor" ) : _( "Rain Sensor" );
+						group = name;
+						shortname = _( "SEN1" );
+					} else if ( this[ 1 ] === "s2" ) {
+						className = "delayed";
+						name = controller.options.sn2t === 3 ? _( "Soil Sensor" ) : _( "Rain Sensor" );
+						group = name;
+						shortname = _( "SEN2" );
 					} else if ( pid === 0 ) {
 						return;
 					} else {
@@ -7897,7 +7916,13 @@ var getLogs = ( function() {
 	page.find( "#log_table" ).prop( "checked", isNarrow );
 
 	function begin() {
-		stations = $.merge( $.merge( [], controller.stations.snames ), [ _( "Rain Sensor" ), _( "Rain Delay" ) ] );
+		var additionalMetrics = checkOSVersion( 219 ) ? [
+			controller.options.sn1t === 3 ? _( "Soil Sensor" ) : _( "Rain Sensor" ),
+			controller.options.sn2t === 3 ? _( "Soil Sensor" ) : _( "Rain Sensor" ),
+			_( "Rain Delay" )
+		] : [ _( "Rain Sensor" ), _( "Rain Delay" ) ];
+
+		stations = $.merge( $.merge( [], controller.stations.snames ), additionalMetrics );
 		page.find( ".clear_logs" ).toggleClass( "hidden", ( isOSPi() || checkOSVersion( 210 ) ?  false : true ) );
 
 		if ( logStart.val() === "" || logEnd.val() === "" ) {
@@ -8101,37 +8126,41 @@ function expandProgram( program ) {
 	} );
 
 	program.find( "[id^='run-']" ).on( "click", function() {
-		var runonce = [],
-			finish = function() {
-				runonce.push( 0 );
-				submitRunonce( runonce );
-			};
+		var name = checkOSVersion( 210 ) ? controller.programs.pd[ id ][ 5 ] : "Program " + id;
 
-		if ( checkOSVersion( 210 ) ) {
-			runonce = controller.programs.pd[ id ][ 4 ];
-
-			if ( ( controller.programs.pd[ id ][ 0 ] >> 1 ) & 1 ) {
-				areYouSure( _( "Do you wish to apply the current watering level?" ), "", function() {
-					for ( var i = runonce.length - 1; i >= 0; i-- ) {
-						runonce[ i ] = parseInt( runonce[ i ] * ( controller.options.wl / 100 ) );
-					}
-					finish();
-				}, finish );
-				return false;
-			}
-		} else {
-			var durr = parseInt( $( "#duration-" + id ).val() ),
-				stations = $( "[id^='station_'][id$='-" + id + "']" );
-
-			$.each( stations, function() {
-				if ( $( this ).is( ":checked" ) ) {
-					runonce.push( durr );
-				} else {
+		areYouSure( _( "Are you sure you want to start " + name + " now?" ), "", function() {
+			var runonce = [],
+				finish = function() {
 					runonce.push( 0 );
+					submitRunonce( runonce );
+				};
+
+			if ( checkOSVersion( 210 ) ) {
+				runonce = controller.programs.pd[ id ][ 4 ];
+
+				if ( ( controller.programs.pd[ id ][ 0 ] >> 1 ) & 1 ) {
+					areYouSure( _( "Do you wish to apply the current watering level?" ), "", function() {
+						for ( var i = runonce.length - 1; i >= 0; i-- ) {
+							runonce[ i ] = parseInt( runonce[ i ] * ( controller.options.wl / 100 ) );
+						}
+						finish();
+					}, finish );
+					return false;
 				}
-			} );
-		}
-		finish();
+			} else {
+				var durr = parseInt( $( "#duration-" + id ).val() ),
+					stations = $( "[id^='station_'][id$='-" + id + "']" );
+
+				$.each( stations, function() {
+					if ( $( this ).is( ":checked" ) ) {
+						runonce.push( durr );
+					} else {
+						runonce.push( 0 );
+					}
+				} );
+			}
+			finish();
+		} );
 		return false;
 	} );
 }
@@ -9506,7 +9535,7 @@ var showAbout = ( function() {
 					"</li>" +
 				"</ul>" +
 				"<p class='smaller'>" +
-					_( "App Version" ) + ": 2.1.0" +
+					_( "App Version" ) + ": 2.1.3" +
 					"<br>" + _( "Firmware" ) + ": <span class='firmware'></span>" +
 					"<br><span class='hardwareLabel'>" + _( "Hardware Version" ) + ":</span> <span class='hardware'></span>" +
 				"</p>" +
