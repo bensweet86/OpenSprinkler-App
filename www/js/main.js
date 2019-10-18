@@ -14,7 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var WEATHER_SERVER_URL = "weather.opensprinkler.com";
+var DEFAULT_WEATHER_SERVER_URL = "https://weather.opensprinkler.com";
+var WEATHER_SERVER_URL = DEFAULT_WEATHER_SERVER_URL;
 
 // Initialize global variables
 var isIEMobile = /IEMobile/.test( navigator.userAgent ),
@@ -115,6 +116,16 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
 	// Initialize variables to keep track of current page count
 	pageHistoryCount = -1,
 	goingBack = false,
+
+	// Define the mapping between options and JSON keys
+	keyIndex = {
+		"tz":1, "ntp":2, "dhcp":3, "ip1":4, "ip2":5, "ip3":6, "ip4":7, "gw1":8, "gw2":9, "gw3":10, "gw4":11,
+		"hp0":12, "hp1":13, "ar":14, "ext":15, "seq":16, "sdt":17, "mas":18, "mton":19, "mtof":20, "urs":21, "rso":22,
+		"wl":23, "den":24, "ipas":25, "devid":26, "con":27, "lit":28, "dim":29, "rlp":30, "uwt":31, "ntp1":32, "ntp2":33,
+		"ntp3":34, "ntp4":35, "lg":36, "mas2":37, "mton2":38, "mtof2":39, "fpr0":41, "fpr1":42, "re":43, "dns1": 44,
+		"dns2":45, "dns3":46, "dns4":47, "sar":48, "ife":49, "sn1t":50, "sn1o":51, "sn2t":52, "sn2o":53, "sn1on":54,
+		"sn1of":55, "sn2on":56, "sn2of":57, "subn1":58, "subn2":59, "subn3":60, "subn4":61
+	},
 
 	// Array to hold all notifications currently displayed within the app
 	notifications = [],
@@ -811,7 +822,7 @@ function newLoad() {
 				changePassword = $( ".changePassword" );
 
 			$.mobile.loading( "hide" );
-			updateWeather();
+			checkURLandUpdateWeather();
 
 			if ( checkOSVersion( 210 ) ) {
 				weatherAdjust.css( "display", "" );
@@ -1046,12 +1057,7 @@ function updateControllerOptions( callback ) {
 				vars.ext--;
 				vars.fwv = "1.8.3-ospi";
 			} else {
-				var keyIndex = {
-					1:"tz", 2:"ntp", 12:"hp0", 13:"hp1", 14:"ar", 15:"ext", 16:"seq", 17:"sdt",
-					18:"mas", 19:"mton", 20:"mtof", 21:"urs", 22:"rso", 23:"wl", 25:"ipas",
-					26:"devid"
-				},
-				valid = [ 1, 2, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26 ];
+				var valid = [ 1, 2, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26 ];
 				tmp = /var opts=\[(.*)\];/.exec( options );
 				tmp = tmp[ 1 ].replace( /"/g, "" ).split( "," );
 
@@ -2609,10 +2615,10 @@ function showEToAdjustmentOptions( button, callback ) {
 	);
 
 	popup.find( ".submit" ).on( "click", function() {
-		$.extend( options, {
+		options = {
 			baseETo: parseFloat( popup.find( ".baseline-ETo" ).val() ),
 			elevation: parseInt( popup.find( ".elevation" ).val() )
-		} );
+		};
 
 		// Convert to imperial before storing.
 		if ( isMetric ) {
@@ -2791,6 +2797,33 @@ function updateWeather() {
             } );
 
 		}
+	} );
+}
+
+function checkURLandUpdateWeather() {
+	var finish = function( wsp ) {
+		if ( wsp ) {
+			WEATHER_SERVER_URL = currPrefix + wsp;
+		} else {
+			WEATHER_SERVER_URL = DEFAULT_WEATHER_SERVER_URL;
+		}
+
+		updateWeather();
+	};
+
+	if ( controller.settings.wsp ) {
+		if ( controller.settings.wsp === "weather.opensprinkler.com" ) {
+			finish();
+			return;
+		}
+
+		finish( controller.settings.wsp );
+		return;
+	}
+
+	return $.get( currPrefix + currIp + "/su" ).then( function( reply ) {
+		var wsp = reply.match( /value="([\w|:|/|.]+)" name=wsp/ );
+		finish( wsp[ 1 ] );
 	} );
 }
 
@@ -3139,30 +3172,31 @@ function overlayMap( callback ) {
 function debugWU() {
 	var popup = "<div data-role='popup' id='debugWU' class='ui-content ui-page-theme-a'><table class='debugWU'>";
 
-	if ( weather ) {
-		popup += "<tr><td>" + _( "Humidity" ) + "</td><td>" + weather.humidity + "%</td></tr>"
-			if ( weather.weatherProvider === "DarkSky" ){
+	popup += ( typeof controller.settings.lupt === "number" ? "<tr><td>" + _( "Last System Reboot" ) + "</td><td>" + dateToString( new Date( controller.settings.lupt * 1000 ) ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.lrbtc === "number" ? "<tr><td>" + _( "Reboot Reason" ) + "</td><td>" + controller.settings.lrbtc + "</td></tr>" : "" ) +
+			( typeof controller.settings.lwc === "number" ? "<tr><td>" + _( "Last Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lwc * 1000 ) ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.lswc === "number" ? "<tr><td>" + _( "Last Weather Response Received" ) + "</td><td>" + dateToString( new Date( controller.settings.lswc * 1000 ) ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wterr === "number" ? "<tr><td>" + _( "Response Code" ) + "</td><td>" + ( controller.settings.wterr === 0 ? _( "Success" ) : _( "Error" ) ) + " (" + controller.settings.wterr + ")</td></tr>" : "" ) +
+			( typeof controller.settings.uwt !== "undefined" ? "<tr><td>" + _( "Adjustment Method" ) + "</td><td>" + getAdjustmentMethod( controller.options.uwt ).name + "</td></tr>" : "" );
 
-				popup += "<tr><td>" + _( "Min Temp" ) + "</td><td>" + formatTemp( weather.minTemp ) + "</td></tr>" +
-						"<tr><td>" + _( "Max Temp" ) + "</td><td>" + formatTemp( weather.maxTemp ) + "</td></tr>" +
-						"<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + formatPrecip( weather.yesterdayPrecip ) + "</td></tr>" +
-						"<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.currentPrecip ) + "</td></tr>";
-
-			} else {
-
-				popup += "<tr><td>" + _( "Mean Temp" ) + "</td><td>" + formatTemp( weather.temp ) + "</td></tr>" +
-						"<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( weather.precip ) + "</td></tr>";
-
-			}
-			popup += "<tr><td>" + _( "Adjustment Method" ) + "</td><td>" + getAdjustmentMethod( controller.options.uwt ).name + "</td></tr>" +
-			"<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>";
+	if ( typeof controller.settings.wtdata === "object" && Object.keys( controller.settings.wtdata ).length > 0 ) {
+		popup += ( typeof controller.settings.wtdata.h !== "undefined" ? "<tr><td>" + _( "Humidity" ) + "</td><td>" + controller.settings.wtdata.h + "%</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.t !== "undefined" ? "<tr><td>" + _( "Mean Temp" ) + "</td><td>" + formatTemp( controller.settings.wtdata.t ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.p !== "undefined" ? "<tr><td>" + _( "Precip" ) + "</td><td>" + formatPrecip( controller.settings.wtdata.p ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.precipY !== "undefined" ? "<tr><td>" + _( "Precip Yesterday" ) + "</td><td>" + formatPrecip( controller.settings.wtdata.precipY ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.precipT !== "undefined" ? "<tr><td>" + _( "Precip Today" ) + "</td><td>" + formatPrecip( controller.settings.wtdata.precipT ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.eto !== "undefined" ? "<tr><td>" + _( "ETo" ) + "</td><td>" + controller.settings.wtdata.eto + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.radiation !== "undefined" ? "<tr><td>" + _( "Radiation" ) + "</td><td>" + controller.settings.wtdata.radiation + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.minT !== "undefined" ? "<tr><td>" + _( "Miniumum Temp" ) + "</td><td>" + formatTemp( controller.settings.wtdata.minT ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.maxT !== "undefined" ? "<tr><td>" + _( "Maximum Temp" ) + "</td><td>" + formatTemp( controller.settings.wtdata.maxT ) + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.minH !== "undefined" ? "<tr><td>" + _( "Miniumum Humidity" ) + "</td><td>" + controller.settings.wtdata.minH + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.maxH !== "undefined" ? "<tr><td>" + _( "Maximum Humidity" ) + "</td><td>" + controller.settings.wtdata.maxH + "</td></tr>" : "" ) +
+			( typeof controller.settings.wtdata.wind !== "undefined" ? "<tr><td>" + _( "Wind" ) + "</td><td>" + controller.settings.wtdata.wind + "</td></tr>" : "" );
 	}
 
-	popup += ( typeof controller.settings.lwc === "number" ? "<tr><td>" + _( "Last Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lwc * 1000 ) ) + "</td></tr>" : "" ) +
-				( typeof controller.settings.lswc === "number" ? "<tr><td>" + _( "Last Successful Weather Call" ) + "</td><td>" + dateToString( new Date( controller.settings.lswc * 1000 ) ) + "</td></tr>" : "" ) +
-				( typeof controller.settings.lupt === "number" ? "<tr><td>" + _( "Last System Reboot" ) + "</td><td>" + dateToString( new Date( controller.settings.lupt * 1000 ) ) + "</td></tr>" : "" ) +
-				( weather && weather.weatherProvider === "DarkSky" ? "<tr><td><a href='https://darksky.net/poweredby/' target='_blank'>Powered by Dark Sky</a></td></tr>" : "" ) +
-				"</table></div>";
+	popup += ( typeof controller.options.wl !== "undefined" ? "<tr><td>" + _( "Current % Watering" ) + "</td><td>" + controller.options.wl + "%</td></tr>" : "" ) +
+		( weather && weather.weatherProvider === "DarkSky" ? "<tr><td><a href='https://darksky.net/poweredby/' target='_blank'>Powered by Dark Sky</a></td></tr>" : "" ) +
+		"</table></div>";
 
 	openPopup( $( popup ) );
 
@@ -3392,14 +3426,28 @@ function showOptions( expandItem ) {
 				"<a class='submit preventBack' style='display:none'></a>" +
 			"</div>" +
 		"</div>" ),
+		generateSensorOptions = function( index, sensorType, number ) {
+			return "<div class='ui-field-contain'>" +
+			    "<fieldset data-role='controlgroup' class='ui-mini center sensor-options' data-type='horizontal'>" +
+			        "<legend class='left'>" + _( "Sensor" ) + ( number ? " " + number + " " : " " ) + _( "Type" ) + "</legend>" +
+			        "<input class='noselect' type='radio' name='o" + index + "' id='o" + index + "-none' value='0'" + ( sensorType === 0 ? " checked='checked'" : "" ) + ">" +
+			        "<label for='o" + index + "-none'>" + _( "None" ) + "</label>" +
+			        "<input class='noselect' type='radio' name='o" + index + "' id='o" + index + "-rain' value='1'" + ( sensorType === 1 ? " checked='checked'" : "" ) + ">" +
+			        "<label for='o" + index + "-rain'>" + _( "Rain" ) + "</label>" +
+					( index === 52 ? "" : "<input class='noselect' type='radio' name='o" + index + "' id='o" + index + "-flow' value='2'" + ( sensorType === 2 ? " checked='checked'" : "" ) + ">" +
+			        	"<label for='o" + index + "-flow'>" + _( "Flow" ) + "</label>" ) +
+			        ( checkOSVersion( 219 ) ? "<input class='noselect' type='radio' name='o" + index + "' id='o" + index + "-soil' value='3'" + ( sensorType === 3 ? " checked='checked'" : "" ) + ">" +
+			        	"<label for='o" + index + "-soil'>" + _( "Soil" ) + "</label>" : "" ) +
+			        ( checkOSVersion( 217 ) ? "<input class='noselect' type='radio' name='o" + index + "' id='o" + index + "-program' value='240'" + ( sensorType === 240 ? " checked='checked'" : "" ) + ">" +
+			        	"<label for='o" + index + "-program'>" + _( "Program Switch" ) + "</label>" : "" ) +
+			    "</fieldset>" +
+			"</div>";
+		},
 		submitOptions = function() {
 			var opt = {},
 				invalid = false,
 				isPi = isOSPi(),
 				button = header.eq( 2 ),
-				keyNames = { 1:"tz", 2:"ntp", 12:"htp", 13:"htp2", 14:"ar", 15:"nbrd", 16:"seq", 17:"sdt", 18:"mas", 19:"mton", 20:"mtoff",
-					21:"urs", 22:"rst", 23:"wl", 25:"ipas", 30:"rlp", 36:"lg", 31:"uwt", 37:"mas2", 38:"mton2", 39:"mtof2", 41:"fpr0", 42:"fpr1",
-					48: "sar", 49: "ife" },
 				key;
 
 			button.prop( "disabled", true );
@@ -3447,6 +3495,21 @@ function showOptions( expandItem ) {
 						opt.o5 = ip[ 1 ];
 						opt.o6 = ip[ 2 ];
 						opt.o7 = ip[ 3 ];
+
+						return true;
+					case "subnet":
+						ip = data.split( "." );
+
+						if ( ip === "0.0.0.0" ) {
+							showerror( _( "A valid subnet address is required when DHCP is not used" ) );
+							invalid = true;
+							return false;
+						}
+
+						opt.o58 = ip[ 0 ];
+						opt.o59 = ip[ 1 ];
+						opt.o60 = ip[ 2 ];
+						opt.o61 = ip[ 3 ];
 
 						return true;
 					case "gateway":
@@ -3536,6 +3599,7 @@ function showOptions( expandItem ) {
 						opt.o42 = ( ( data * 100 ) >> 8 ) & 0xff;
 						return true;
 					case "o2":
+					case "o3":
 					case "o14":
 					case "o16":
 					case "o21":
@@ -3543,9 +3607,12 @@ function showOptions( expandItem ) {
 					case "o25":
 					case "o36":
 					case "o48":
-					case "o3":
+					case "o50":
+					case "o51":
+					case "o52":
+					case "o53":
 						data = $item.is( ":checked" ) ? 1 : 0;
-						if ( !data ) {
+						if ( !checkOSVersion( 219 ) && !data ) {
 							return true;
 						}
 						break;
@@ -3555,7 +3622,7 @@ function showOptions( expandItem ) {
 						id = "o" + id;
 					} else {
 						key = /\d+/.exec( id );
-						id = "o" + keyNames[ key ];
+						id = "o" + Object.keys( keyIndex ).find( function( index ) { return keyIndex[ index ] === key; } );
 					}
 				}
 
@@ -3572,8 +3639,20 @@ function showOptions( expandItem ) {
 				return;
 			}
 			if ( typeof controller.options.fpr0 !== "undefined" ) {
-				opt.o21 = page.find( "input[name='o21'][type='radio']:checked" ).val();
+				if ( typeof controller.options.urs !== "undefined" ) {
+					opt.o21 = page.find( "input[name='o21'][type='radio']:checked" ).val();
+				} else {
+					if ( typeof controller.options.sn1t !== "undefined" ) {
+						opt.o50 = page.find( "input[name='o50'][type='radio']:checked" ).val();
+					}
+
+					if ( typeof controller.options.sn2t !== "undefined" ) {
+						opt.o52 = page.find( "input[name='o52'][type='radio']:checked" ).val();
+					}
+				}
 			}
+
+			opt = transformKeys( opt );
 
 			$.mobile.loading( "show" );
 			sendToOS( "/co?pw=&" + $.param( opt ) ).done( function() {
@@ -3802,24 +3881,10 @@ function showOptions( expandItem ) {
 				"data-mini='true' id='o23' value='" + controller.options.wl + "'>" + controller.options.wl + "%</button></div>";
 	}
 
-	if ( typeof controller.options.urs !== "undefined" ) {
+	if ( typeof controller.options.urs !== "undefined" || typeof controller.options.sn1t !== "undefined" ) {
 		if ( typeof controller.options.fpr0 !== "undefined" ) {
-			list += "<div class='ui-field-contain'>" +
-				    "<fieldset data-role='controlgroup' class='ui-mini center' data-type='horizontal'>" +
-						"<legend class='left'>" + _( "Attached Sensor Type" ) + "</legend>" +
-						"<input class='noselect' type='radio' name='o21' id='o21-none' value='0'" + ( controller.options.urs === 0 ? " checked='checked'" : "" ) + ">" +
-						"<label for='o21-none'>" + _( "None" ) + "</label>" +
-						"<input class='noselect' type='radio' name='o21' id='o21-rain' value='1'" + ( controller.options.urs === 1 ? " checked='checked'" : "" ) + ">" +
-						"<label for='o21-rain'>" + _( "Rain" ) + "</label>" +
-						"<input class='noselect' type='radio' name='o21' id='o21-flow' value='2'" + ( controller.options.urs === 2 ? " checked='checked'" : "" ) + ">" +
-						"<label for='o21-flow'>" + _( "Flow" ) + "</label>" +
-						( checkOSVersion( 217 ) ? "<input class='noselect' type='radio' name='o21' id='o21-program' value='240'" + ( controller.options.urs === 240 ? " checked='checked'" : "" ) + ">" +
-						"<label for='o21-program'>" + _( "Program Switch" ) + "</label>" : "" ) +
-				    "</fieldset>" +
-				"</div>" +
-				( checkOSVersion( 217 ) ? "<label id='prgswitch' class='center smaller" + ( controller.options.urs === 240 ? "" : " hidden" ) + "'>" +
-					_( "When using program switch, a switch is connected to the sensor port to trigger Program 1 every time the switch is pressed for at least 1 second." ) +
-				"</label>" : "" );
+			list += typeof controller.options.urs !== "undefined" ? generateSensorOptions( keyIndex.urs, controller.options.urs ) :
+					( typeof controller.options.sn1t !== "undefined" ? generateSensorOptions( keyIndex.sn1t, controller.options.sn1t, 1 ) : "" );
 		} else {
 			list += "<label for='o21'>" +
 				"<input data-mini='true' id='o21' type='checkbox' " + ( ( controller.options.urs === 1 ) ? "checked='checked'" : "" ) + ">" +
@@ -3828,13 +3893,19 @@ function showOptions( expandItem ) {
 	}
 
 	if ( typeof controller.options.rso !== "undefined" ) {
-		list += "<label for='o22'><input " + ( controller.options.urs === 1 ? "" : "data-wrapper-class='hidden' " ) +
+		list += "<label for='o22'><input " + ( controller.options.urs === 1 || controller.options.urs === 240 ? "" : "data-wrapper-class='hidden' " ) +
 			"data-mini='true' id='o22' type='checkbox' " + ( ( controller.options.rso === 1 ) ? "checked='checked'" : "" ) + ">" +
-			_( "Normally Open (Rain Sensor)" ) + "</label>";
+			_( "Normally Open" ) + "</label>";
+	}
+
+	if ( typeof controller.options.sn1o !== "undefined" ) {
+		list += "<label for='o51'><input " + ( controller.options.sn1t === 1 || controller.options.sn1t === 3 || controller.options.sn1t === 240 ? "" : "data-wrapper-class='hidden' " ) +
+			"data-mini='true' id='o51' type='checkbox' " + ( ( controller.options.sn1o === 1 ) ? "checked='checked'" : "" ) + ">" +
+			_( "Normally Open" ) + "</label>";
 	}
 
 	if ( typeof controller.options.fpr0 !== "undefined" ) {
-		list += "<div class='ui-field-contain" + ( controller.options.urs === 2 ? "" : " hidden" ) + "'>" +
+		list += "<div class='ui-field-contain" + ( controller.options.urs === 2 || controller.options.sn1t === 2 ? "" : " hidden" ) + "'>" +
 			"<label for='o41'>" + _( "Flow Pulse Rate" ) + "</label>" +
 			"<table>" +
 				"<tr style='width:100%;vertical-align: top;'>" +
@@ -3851,6 +3922,56 @@ function showOptions( expandItem ) {
 					"</td>" +
 				"</tr>" +
 			"</table></div>";
+	}
+
+	if ( typeof controller.options.sn1on !== "undefined" ) {
+		list += "<div class='" + ( controller.options.sn1t === 1 || controller.options.sn1t === 3 ? "" : "hidden " ) +
+			"ui-field-no-border ui-field-contain duration-field'><label for='o54'>" +
+				_( "Sensor 1 Delayed On Time" ) +
+			"</label><button data-mini='true' id='o54' value='" + controller.options.sn1on + "'>" + controller.options.sn1on + "m</button></div>";
+	}
+
+	if ( typeof controller.options.sn1of !== "undefined" ) {
+		list += "<div class='" + ( controller.options.sn1t === 1 || controller.options.sn1t === 3 ? "" : "hidden " ) +
+			"ui-field-no-border ui-field-contain duration-field'><label for='o55'>" +
+				_( "Sensor 1 Delayed Off Time" ) +
+			"</label><button data-mini='true' id='o55' value='" + controller.options.sn1of + "'>" + controller.options.sn1of + "m</button></div>";
+	}
+
+	if ( checkOSVersion( 217 ) ) {
+		list += "<label id='prgswitch' class='center smaller" + ( controller.options.urs === 240 || controller.options.sn1t === 240 || controller.options.sn2t === 240 ? "" : " hidden" ) + "'>" +
+			_( "When using program switch, a switch is connected to the sensor port to trigger Program 1 every time the switch is pressed for at least 1 second." ) +
+		"</label>";
+	}
+
+	if ( typeof controller.options.sn2t !== "undefined" ) {
+		list += generateSensorOptions( keyIndex.sn2t, controller.options.sn2t, 2 );
+	}
+
+	if ( typeof controller.options.sn2o !== "undefined" ) {
+		list += "<label for='o53'><input " + ( controller.options.sn2t === 1 || controller.options.sn2t === 3 || controller.options.sn2t === 240 ? "" : "data-wrapper-class='hidden' " ) +
+			"data-mini='true' id='o53' type='checkbox' " + ( ( controller.options.sn2o === 1 ) ? "checked='checked'" : "" ) + ">" +
+			_( "Normally Open" ) + "</label>";
+	}
+
+	if ( typeof controller.options.sn2on !== "undefined" ) {
+		list += "<div class='" + ( controller.options.sn2t === 1 || controller.options.sn2t === 3 ? "" : "hidden " ) +
+			"ui-field-no-border ui-field-contain duration-field'><label for='o56'>" +
+				_( "Sensor 2 Delayed On Time" ) +
+			"</label><button data-mini='true' id='o56' value='" + controller.options.sn2on + "'>" + controller.options.sn2on + "m</button></div>";
+	}
+
+	if ( typeof controller.options.sn2of !== "undefined" ) {
+		list += "<div class='" + ( controller.options.sn2t === 1 || controller.options.sn2t === 3 ? "" : "hidden " ) +
+			"ui-field-no-border ui-field-contain duration-field'><label for='o57'>" +
+				_( "Sensor 2 Delayed Off Time" ) +
+			"</label><button data-mini='true' id='o57' value='" + controller.options.sn2of + "'>" + controller.options.sn2of + "m</button></div>";
+	}
+
+	if ( typeof controller.options.sn2t !== "undefined" ) {
+		list += "<label id='prgswitch-2' class='center smaller" + ( controller.options.urs === 240 || controller.options.sn1t === 240 || controller.options.sn2t === 240 ? "" : " hidden" ) + "'>" +
+			_( "When using program switch, a switch is connected to the sensor port to trigger Program 2 every time the switch is pressed for at least 1 second." ) +
+		"</label>";
 	}
 
 	if ( typeof controller.settings.ifkey !== "undefined" ) {
@@ -3989,7 +4110,13 @@ function showOptions( expandItem ) {
 		list += "<div class='" + ( ( controller.options.dhcp === 1 ) ? "hidden " : "" ) + "ui-field-contain duration-field'><label for='gateway'>" +
 			_( "Gateway Address" ) + "</label><button data-mini='true' id='gateway' value='" + gw + "'>" + gw + "</button></div>";
 
-		if ( controller.options.dns1 ) {
+		if ( typeof controller.options.subn1 !== "undefined" ) {
+			var subnet = [ controller.options.subn1, controller.options.subn2, controller.options.subn3, controller.options.subn4 ].join( "." );
+			list += "<div class='" + ( ( controller.options.dhcp === 1 ) ? "hidden " : "" ) + "ui-field-contain duration-field'><label for='subnet'>" +
+				_( "Subnet Mask" ) + "</label><button data-mini='true' id='subnet' value='" + subnet + "'>" + subnet + "</button></div>";
+		}
+
+		if ( typeof controller.options.dns1 !== "undefined" ) {
 			var dns = [ controller.options.dns1, controller.options.dns2, controller.options.dns3, controller.options.dns4 ].join( "." );
 			list += "<div class='" + ( ( controller.options.dhcp === 1 ) ? "hidden " : "" ) + "ui-field-contain duration-field'><label for='dns'>" +
 				_( "DNS Address" ) + "</label><button data-mini='true' id='dns' value='" + dns + "'>" + dns + "</button></div>";
@@ -4027,7 +4154,7 @@ function showOptions( expandItem ) {
 	list += "<button data-mini='true' class='center-div reset-options'>" + _( "Reset All Options" ) + "</button>";
 	list += "<button data-mini='true' class='center-div reset-stations'>" + _( "Reset All Station Data" ) + "</button>";
 
-	if ( getHWVersion() === "3.0" ) {
+	if ( controller.options.hwv >= 30 && controller.options.hwv >= 40 ) {
 		list += "<hr class='divider'><button data-mini='true' class='center-div reset-wireless'>" + _( "Reset Wireless Settings" ) + "</button>";
 	}
 
@@ -4160,6 +4287,18 @@ function showOptions( expandItem ) {
 			}
 		}
 
+		if ( typeof controller.stations.ignore_sn1 === "object" ) {
+			for ( i = 0; i < controller.settings.nbrd; i++ ) {
+				cs += "j" + i + "=0&";
+			}
+		}
+
+		if ( typeof controller.stations.ignore_sn2 === "object" ) {
+			for ( i = 0; i < controller.settings.nbrd; i++ ) {
+				cs += "k" + i + "=0&";
+			}
+		}
+
 		if ( typeof controller.stations.act_relay === "object" ) {
 			for ( i = 0; i < controller.settings.nbrd; i++ ) {
 				cs += "a" + i + "=0&";
@@ -4210,7 +4349,7 @@ function showOptions( expandItem ) {
 	page.find( "#o3" ).on( "change", function() {
 		var button = $( this ),
 			checked = button.is( ":checked" ),
-			manualInputs = page.find( "#ip_addr,#gateway,#dns" ).parents( ".ui-field-contain" );
+			manualInputs = page.find( "#ip_addr,#gateway,#dns,#subnet" ).parents( ".ui-field-contain" );
 
 		if ( checked ) {
 			manualInputs.addClass( "hidden" );
@@ -4219,27 +4358,46 @@ function showOptions( expandItem ) {
 		}
 	} );
 
-	page.find( "#o21,input[name='o21'][type='radio']" ).on( "change", function() {
-		var button = $( this ),
-			checked = button.attr( "id" ) === "o21" ? button.is( ":checked" ) : button.val() === "1";
+	page.find( ".sensor-options input[type='radio']" ).on( "change", function() {
+		var currentValue = this.value;
+		var index = parseInt( this.id.match( /o(\d+)/ )[ 1 ], 10 );
 
-		if ( checked ) {
-			page.find( "#o22" ).parent().removeClass( "hidden" );
-		} else {
-			page.find( "#o22" ).parent().addClass( "hidden" );
-		}
-
-		if ( button.val() === "2" ) {
+		if ( currentValue === "2" ) {
 			page.find( "#o41" ).parents( ".ui-field-contain" ).removeClass( "hidden" );
-		} else {
+		} else if ( index === 21 || index === 50 ) {
 			page.find( "#o41" ).parents( ".ui-field-contain" ).addClass( "hidden" );
 		}
 
-		if ( button.val() === "240" ) {
+		if ( currentValue === "1" || currentValue === "3" || currentValue === "240" ) {
+			page.find( "#o" + ( index + 1 ) ).parent().removeClass( "hidden" );
+		} else {
+			page.find( "#o" + ( index + 1 ) ).parent().addClass( "hidden" );
+		}
+
+		if (
+			$( "input[name='o21'][type='radio']:checked" ).val() === "240" ||
+			$( "input[name='o50'][type='radio']:checked" ).val() === "240"
+		) {
 			page.find( "#prgswitch" ).removeClass( "hidden" );
 		} else {
 			page.find( "#prgswitch" ).addClass( "hidden" );
 		}
+
+		if ( $( "input[name='o52'][type='radio']:checked" ).val() === "240" ) {
+			page.find( "#prgswitch-2" ).removeClass( "hidden" );
+		} else {
+			page.find( "#prgswitch-2" ).addClass( "hidden" );
+		}
+
+		if ( currentValue === "1" || currentValue === "3" ) {
+			page.find( "#o" + ( index + 4 ) + ",#o" + ( index + 5 ) ).parent().removeClass( "hidden" );
+		} else {
+			page.find( "#o" + ( index + 4 ) + ",#o" + ( index + 5 ) ).parent().addClass( "hidden" );
+		}
+	} );
+
+	page.find( "#o21" ).on( "change", function() {
+		page.find( "#o22" ).parent().toggleClass( "hidden", $( this ).is( ":checked" ) );
 	} );
 
 	page.find( "#verify-api" ).on( "click", function() {
@@ -4290,7 +4448,7 @@ function showOptions( expandItem ) {
 		header.eq( 2 ).prop( "disabled", false );
 		page.find( ".submit" ).addClass( "hasChanges" );
 
-		if ( id === "ip_addr" || id === "gateway" || id === "dns" || id === "ntp_addr" ) {
+		if ( id === "ip_addr" || id === "gateway" || id === "dns" || id === "ntp_addr" || id === "subnet" ) {
 			showIPRequest( {
 				title: name,
 				ip: dur.val().split( "." ),
@@ -4371,6 +4529,18 @@ function showOptions( expandItem ) {
 				maximum: max,
 				minimum: min
 			} );
+		} else if ( id === "o54" || id === "o55" || id === "o56" || id === "o57" ) {
+			showSingleDurationInput( {
+				data: dur.val(),
+				title: name,
+				callback: function( result ) {
+					dur.val( result ).text( result + "m" );
+				},
+				label: _( "Minutes" ),
+				maximum: 240,
+				minimum: 0,
+				helptext: helptext
+			} );
 		}
 
 		return false;
@@ -4399,7 +4569,7 @@ function showOptions( expandItem ) {
 		page.find( "#o23" ).prop( "disabled", ( parseInt( this.value ) === 0 ? false : true ) );
 
 		// Switch the state of adjustment options based on the selected method
-		page.find( "#wto" ).parents( ".ui-field-contain" ).toggleClass( "hidden", parseInt( this.value ) === 0 ? true : false );
+		page.find( "#wto" ).click().parents( ".ui-field-contain" ).toggleClass( "hidden", parseInt( this.value ) === 0 ? true : false );
 	} );
 
 	page.find( "#wtkey" ).on( "change input", function() {
@@ -4412,11 +4582,13 @@ function showOptions( expandItem ) {
 	page.find( "#o49" ).on( "click", function() {
 		var events = {
 			program: _( "Program Start" ),
-			rain: _( "Rain Sensor Update" ),
+			sensor1: _( "Sensor 1 Update" ),
 			flow: _( "Flow Sensor Update" ),
 			weather: _( "Weather Adjustment Update" ),
 			reboot: _( "Controller Reboot" ),
-			run: _( "Station Run" )
+			run: _( "Station Run" ),
+			sensor2: _( "Sensor 2 Update" ),
+			rain: _( "Rain Delay Update" )
 		}, button = this, curr = parseInt( button.value ), inputs = "", a = 0, ife = 0;
 
 		$.each( events, function( i, val ) {
@@ -4625,6 +4797,8 @@ var showHome = ( function() {
 				( hasMaster ? ( "data-um='" + ( ( controller.stations.masop[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
 				( hasMaster2 ? ( "data-um2='" + ( ( controller.stations.masop2[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
 				( hasIR ? ( "data-ir='" + ( ( controller.stations.ignore_rain[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
+				( hasSN1 ? ( "data-sn1='" + ( ( controller.stations.ignore_sn1[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
+				( hasSN2 ? ( "data-sn2='" + ( ( controller.stations.ignore_sn2[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
 				( hasAR ? ( "data-ar='" + ( ( controller.stations.act_relay[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
 				( hasSD ? ( "data-sd='" + ( ( controller.stations.stn_dis[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
 				( hasSequential ? ( "data-us='" + ( ( controller.stations.stn_seq[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) + "' " ) : "" ) +
@@ -4854,6 +5028,8 @@ var showHome = ( function() {
 					button.data( "um", select.find( "#um" ).is( ":checked" ) ? 1 : 0 );
 					button.data( "um2", select.find( "#um2" ).is( ":checked" ) ? 1 : 0 );
 					button.data( "ir", select.find( "#ir" ).is( ":checked" ) ? 1 : 0 );
+					button.data( "sn1", select.find( "#sn1" ).is( ":checked" ) ? 1 : 0 );
+					button.data( "sn2", select.find( "#sn2" ).is( ":checked" ) ? 1 : 0 );
 					button.data( "ar", select.find( "#ar" ).is( ":checked" ) ? 1 : 0 );
 					button.data( "sd", select.find( "#sd" ).is( ":checked" ) ? 1 : 0 );
 					button.data( "us", select.find( "#us" ).is( ":checked" ) ? 1 : 0 );
@@ -4910,6 +5086,18 @@ var showHome = ( function() {
 				if ( hasIR ) {
 					select += "<label for='ir'><input class='needsclick' data-iconpos='right' id='ir' type='checkbox' " +
 							( ( button.data( "ir" ) === 1 ) ? "checked='checked'" : "" ) + ">" + _( "Ignore Rain" ) +
+						"</label>";
+				}
+
+				if ( hasSN1 ) {
+					select += "<label for='sn1'><input class='needsclick' data-iconpos='right' id='sn1' type='checkbox' " +
+							( ( button.data( "sn1" ) === 1 ) ? "checked='checked'" : "" ) + ">" + _( "Ignore Sensor 1" ) +
+						"</label>";
+				}
+
+				if ( hasSN2 ) {
+					select += "<label for='sn2'><input class='needsclick' data-iconpos='right' id='sn2' type='checkbox' " +
+							( ( button.data( "sn2" ) === 1 ) ? "checked='checked'" : "" ) + ">" + _( "Ignore Sensor 2" ) +
 						"</label>";
 				}
 
@@ -5030,6 +5218,8 @@ var showHome = ( function() {
 				sequential = {},
 				special = {},
 				rain = {},
+				sensor1 = {},
+				sensor2 = {},
 				relay = {},
 				disable = {},
 				names = {},
@@ -5050,6 +5240,12 @@ var showHome = ( function() {
 				}
 				if ( hasIR ) {
 					rain[ "i" + bid ] = 0;
+				}
+				if ( hasSN1 ) {
+					sensor1[ "j" + bid ] = 0;
+				}
+				if ( hasSN2 ) {
+					sensor2[ "k" + bid ] = 0;
 				}
 				if ( hasAR ) {
 					relay[ "a" + bid ] = 0;
@@ -5080,6 +5276,14 @@ var showHome = ( function() {
 
 					if ( hasIR ) {
 						rain[ "i" + bid ] = ( rain[ "i" + bid ] ) + ( attrib.data( "ir" ) << s );
+					}
+
+					if ( hasSN1 ) {
+						sensor1[ "j" + bid ] = ( sensor1[ "j" + bid ] ) + ( attrib.data( "sn1" ) << s );
+					}
+
+					if ( hasSN2 ) {
+						sensor2[ "k" + bid ] = ( sensor2[ "k" + bid ] ) + ( attrib.data( "sn2" ) << s );
 					}
 
 					if ( hasAR ) {
@@ -5116,6 +5320,8 @@ var showHome = ( function() {
 				( hasSequential ? "&" + $.param( sequential ) : "" ) +
 				( hasSpecial ? "&" + $.param( special ) : "" ) +
 				( hasIR ? "&" + $.param( rain ) : "" ) +
+				( hasSN1 ? "&" + $.param( sensor1 ) : "" ) +
+				( hasSN2 ? "&" + $.param( sensor2 ) : "" ) +
 				( hasAR ? "&" + $.param( relay ) : "" ) +
 				( hasSD ? "&" + $.param( disable ) : "" )
 			).done( function() {
@@ -5205,6 +5411,8 @@ var showHome = ( function() {
 			hasMaster = controller.options.mas ? true : false;
 			hasMaster2 = controller.options.mas2 ? true : false;
 			hasIR = ( typeof controller.stations.ignore_rain === "object" ) ? true : false;
+			hasSN1 = ( typeof controller.stations.ignore_sn1 === "object" ) ? true : false;
+			hasSN2 = ( typeof controller.stations.ignore_sn2 === "object" ) ? true : false;
 			hasAR = ( typeof controller.stations.act_relay === "object" ) ? true : false;
 			hasSD = ( typeof controller.stations.stn_dis === "object" ) ? true : false;
 			hasSequential = ( typeof controller.stations.stn_seq === "object" ) ? true : false;
@@ -5251,6 +5459,8 @@ var showHome = ( function() {
 						um: hasMaster ? ( ( controller.stations.masop[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
 						um2: hasMaster2 ? ( ( controller.stations.masop2[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
 						ir: hasIR ? ( ( controller.stations.ignore_rain[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
+						sn1: hasSN1 ? ( ( controller.stations.ignore_sn1[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
+						sn2: hasSN2 ? ( ( controller.stations.ignore_sn2[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
 						ar: hasAR ? ( ( controller.stations.act_relay[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
 						sd: hasSD ? ( ( controller.stations.stn_dis[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
 						us: hasSequential ? ( ( controller.stations.stn_seq[ parseInt( i / 8 ) ] & ( 1 << ( i % 8 ) ) ) ? 1 : 0 ) : undefined,
@@ -5304,7 +5514,7 @@ var showHome = ( function() {
 				callback();
 			} );
 		},
-		hasMaster, hasMaster2, hasIR, hasAR, hasSD, hasSequential, hasSpecial, cards, siteSelect, currentSite, i, sites;
+		hasMaster, hasMaster2, hasIR, hasSN1, hasSN2, hasAR, hasSD, hasSequential, hasSpecial, cards, siteSelect, currentSite, i, sites;
 
 	page.one( "pageshow", function() {
 		$( "html" ).on( "datarefresh", updateContent );
@@ -5318,6 +5528,8 @@ var showHome = ( function() {
 		hasMaster = controller.options.mas ? true : false;
 		hasMaster2 = controller.options.mas2 ? true : false;
 		hasIR = ( typeof controller.stations.ignore_rain === "object" ) ? true : false;
+		hasSN1 = ( typeof controller.stations.ignore_sn1 === "object" ) ? true : false;
+		hasSN2 = ( typeof controller.stations.ignore_sn2 === "object" ) ? true : false;
 		hasAR = ( typeof controller.stations.act_relay === "object" ) ? true : false;
 		hasSD = ( typeof controller.stations.stn_dis === "object" ) ? true : false;
 		hasSequential = ( typeof controller.stations.stn_seq === "object" ) ? true : false;
@@ -5838,6 +6050,16 @@ function checkStatus() {
 	// Handle rain sensor triggered
 	if ( controller.options.urs === 1 && controller.settings.rs === 1 ) {
 		changeStatus( 0, "red", "<p class='running-text center'>" + _( "Rain detected" ) + "</p>" );
+		return;
+	}
+
+	if ( controller.settings.sn1 === 1 ) {
+		changeStatus( 0, "red", "<p class='running-text center'>Sensor 1 (" + ( controller.options.sn1t === 3 ? _( "Soil" ) : _( "Rain" ) ) + _( ") Activated" ) + "</p>" );
+		return;
+	}
+
+	if ( controller.settings.sn2 === 1 ) {
+		changeStatus( 0, "red", "<p class='running-text center'>Sensor 2 (" + ( controller.options.sn2t === 3 ? _( "Soil" ) : _( "Rain" ) ) + _( ") Activated" ) + "</p>" );
 		return;
 	}
 
@@ -7727,7 +7949,8 @@ function resetAllOptions( callback ) {
 			co = "otz=32&ontp=1&onbrd=0&osdt=0&omas=0&omton=0&omtoff=0&orst=1&owl=100&orlp=0&ouwt=0&olg=1&oloc=Boston,MA";
 		} else {
 			co = "o1=32&o2=1&o3=1&o12=80&o13=0&o15=0&o17=0&o18=0&o19=0&o20=0&o22=1&o23=100&o26=0&o27=110&o28=100&o29=15&" +
-				"o30=0&o31=0&o32=50&o33=97&o34=210&o35=169&o36=1&o37=0&038=0&o39=0&loc=Boston,MA&wto=%22key%22%3A%22%22";
+				"o30=0&o31=0&o32=50&o33=97&o34=210&o35=169&o36=1&o37=0&o38=0&o39=0&loc=Boston,MA&wto=%22key%22%3A%22%22";
+			transformKeysinString( co );
 		}
 
 		sendToOS( "/co?pw=&" + co ).done( function() {
@@ -8995,13 +9218,7 @@ function getImportMethod( localData ) {
 }
 
 function importConfig( data ) {
-	var piNames = { 1:"tz", 2:"ntp", 12:"htp", 13:"htp2", 14:"ar", 15:"nbrd", 16:"seq", 17:"sdt", 18:"mas", 19:"mton", 20:"mtoff",
-			21:"urs", 22:"rst", 23:"wl", 25:"ipas", 30:"rlp", 36:"lg" },
-		keyIndex = { "tz":1, "ntp":2, "dhcp":3, "hp0":12, "hp1":13, "ar":14, "ext":15, "seq":16, "sdt":17, "mas":18, "mton":19,
-			"mtof":20, "urs":21, "rso":22, "wl":23, "ipas":25, "devid":26, "con": 27, "lit": 28, "dim": 29, "rlp":30, "lg":36,
-			"uwt":31, "ntp1":32, "ntp2":33, "ntp3":34, "ntp4":35, "mas2":37, "mton2":38, "mtof2":39, "fpr0":41, "fpr1":42, "re":43,
-			"dns1": 44, "dns2": 45, "dns3": 46, "dns4": 47, "sar": 48, "ife": 49 },
-		warning = "";
+	var warning = "";
 
 	if ( typeof data !== "object" || !data.settings ) {
 		showerror( _( "Invalid configuration" ) );
@@ -9024,6 +9241,8 @@ function importConfig( data ) {
 			isPi = isOSPi(),
 			i, key, option, station;
 
+		var findKey = function( index ) { return keyIndex[ index ] === key; };
+
 		for ( i in data.options ) {
 			if ( data.options.hasOwnProperty( i ) && keyIndex.hasOwnProperty( i ) ) {
 				key = keyIndex[ i ];
@@ -9037,12 +9256,10 @@ function importConfig( data ) {
 					continue;
 				}
 				if ( isPi ) {
-					key = piNames[ key ];
+					key = Object.keys( keyIndex ).find( findKey );
 					if ( key === undefined ) {
 						continue;
 					}
-				} else {
-					key = key;
 				}
 				if ( checkOSVersion( 208 ) === true && typeof data.options[ i ] === "string" ) {
 					option = data.options[ i ].replace( /\s/g, "_" );
@@ -9102,6 +9319,18 @@ function importConfig( data ) {
 			}
 		}
 
+		if ( typeof data.stations.ignore_sn1 === "object" ) {
+			for ( i = 0; i < data.stations.ignore_sn1.length; i++ ) {
+				cs += "&j" + i + "=" + data.stations.ignore_sn1[ i ];
+			}
+		}
+
+		if ( typeof data.stations.ignore_sn2 === "object" ) {
+			for ( i = 0; i < data.stations.ignore_sn2.length; i++ ) {
+				cs += "&k" + i + "=" + data.stations.ignore_sn2[ i ];
+			}
+		}
+
 		if ( typeof data.stations.stn_dis === "object" ) {
 			for ( i = 0; i < data.stations.stn_dis.length; i++ ) {
 				cs += "&d" + i + "=" + data.stations.stn_dis[ i ];
@@ -9135,7 +9364,7 @@ function importConfig( data ) {
 		data.special = data.special || {};
 
 		$.when(
-			sendToOS( co ),
+			sendToOS( transformKeysinString( co ) ),
 			sendToOS( cs ),
 			sendToOS( "/dp?pw=&pid=-1" ),
 			$.each( data.programs.pd, function( i, prog ) {
@@ -9277,7 +9506,7 @@ var showAbout = ( function() {
 					"</li>" +
 				"</ul>" +
 				"<p class='smaller'>" +
-					_( "App Version" ) + ": 2.0.3" +
+					_( "App Version" ) + ": 2.1.0" +
 					"<br>" + _( "Firmware" ) + ": <span class='firmware'></span>" +
 					"<br><span class='hardwareLabel'>" + _( "Hardware Version" ) + ":</span> <span class='hardware'></span>" +
 				"</p>" +
@@ -11989,4 +12218,37 @@ function dateToString( date, toUTC, shorten ) {
 					pad( date.getSeconds() );
 		}
 	}
+}
+
+// Transform keys to JSON names for 2.1.9+
+function transformKeys( opt ) {
+	if ( checkOSVersion( 219 ) ) {
+		var renamedOpt = {};
+		Object.keys( opt ).forEach( function( item ) {
+			var name = item.match( /^o(\d+)$/ );
+
+			if ( name && name[ 1 ] ) {
+				renamedOpt[ Object.keys( keyIndex ).find( function( index ) { return keyIndex[ index ] === parseInt( name[ 1 ], 10 ); } ) ] = opt[ item ];
+			} else {
+				renamedOpt[ item ] = opt[ item ];
+			}
+		} );
+
+		return renamedOpt;
+	}
+
+	return opt;
+}
+
+function transformKeysinString( co ) {
+	var opt = {};
+	co.split( "&" ).forEach( function( item ) {
+		item = item.split( "=" );
+		opt[ item[ 0 ] ] = item[ 1 ];
+	} );
+	opt = transformKeys( opt );
+	var arr = [];
+	Object.keys( opt ).forEach( function( key ) { arr.push( key + "=" + opt[ key ] ); } );
+	co = arr.join( "&" );
+	return co;
 }
