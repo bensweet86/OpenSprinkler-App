@@ -28,8 +28,7 @@ var isIEMobile = /IEMobile/.test( navigator.userAgent ),
 	isFileCapable = !isiOS && !isAndroid && !isIEMobile && !isOSXApp &&
 					!isWinApp && window.FileReader,
 	isTouchCapable = "ontouchstart" in window || "onmsgesturechange" in window,
-	languages = ( navigator.languages) ? navigator.languages[ 0 ].split( "-" )[ 1 ] : navigator.languages,
-	isMetric = ( [ "US", "BM", "PW" ].indexOf( languages ) === -1 ),
+	isMetric = ( [ "US", "BM", "PW" ].indexOf( navigator.languages[ 0 ].split( "-" )[ 1 ] ) === -1 ),
 
 	// Small wrapper to handle Chrome vs localStorage usage
 	storage = {
@@ -2753,7 +2752,8 @@ function updateWeather() {
 
 	$.ajax( {
 		url: WEATHER_SERVER_URL + "/weatherData?loc=" +
-			encodeURIComponent( controller.settings.loc ),
+			encodeURIComponent( controller.settings.loc ) +
+			"&dskey=" + controller.settings.dskey,
 		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
 
@@ -2765,12 +2765,20 @@ function updateWeather() {
 
 			currentCoordinates = data.location;
 
-            weather = data;
-            data.lastUpdated = new Date().getTime();
-            data.providedLocation = controller.settings.loc;
-            localStorage.weatherData = JSON.stringify( data );
+			coordsToLocation( data.location[ 0 ], data.location[ 1 ], function( result ) {
 
-            finishWeatherUpdate();
+				if ( data.weatherProvider === "DarkSky" ) {
+
+					data.city =  result;
+
+				}
+
+				weather = data;
+				data.lastUpdated = new Date().getTime();
+				data.providedLocation = controller.settings.loc;
+				localStorage.weatherData = JSON.stringify( data );
+				finishWeatherUpdate();
+			} );
 		}
 	} );
 }
