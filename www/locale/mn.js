@@ -18,22 +18,7 @@
       "Configured as Extender" : "",
       "Register here" : "",
       "Sunday" : "Ням",
-<<<<<<< HEAD
-      "Do you want to save your changes?" : "",
-      "Zoom out" : "",
-      "Unified firmware is now avaialble" : "",
-      "Use Rain Sensor" : "",
-      "Remote Port" : "",
-      "Manual" : "",
-      "Unable to reach the remote station." : "",
-      "Move right" : "",
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-      "Program Start" : "",
-      "Reboot OpenSprinkler" : "",
-      "% Watering" : "",
-=======
       "available" : "",
->>>>>>> upstream/master
       "Email (copy/paste)" : "",
       "Rain" : "",
       "Please re-enter password to try again." : "",

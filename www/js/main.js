@@ -2644,7 +2644,7 @@ function showEToAdjustmentOptions( button, callback ) {
 		showLoading( ".detect-baseline-eto" );
 
 		$.ajax( {
-			url: currPrefix + WEATHER_SERVER_URL + "/baselineETo?loc=" + encodeURIComponent( controller.settings.loc ),
+			url: WEATHER_SERVER_URL + "/baselineETo?loc=" + encodeURIComponent( controller.settings.loc ),
 			contentType: "application/json; charset=utf-8",
 			success: function( data ) {
 
@@ -2726,8 +2726,7 @@ function finishWeatherUpdate() {
 }
 
 function updateWeather() {
-	var now = new Date().getTime(),
-        url;
+	var now = new Date().getTime();
 
 	if ( weather && weather.providedLocation === controller.settings.loc && now - weather.lastUpdated < 60 * 60 * 100 ) {
 		finishWeatherUpdate();
@@ -2752,22 +2751,9 @@ function updateWeather() {
 
 	showLoading( "#weather" );
 
-    if ( typeof controller.settings.wurl !== "undefined" && controller.settings.wurl !== "" ) {
-
-        url = currPrefix + controller.settings.wurl + "/weatherData?loc=" +
-        encodeURIComponent( controller.settings.loc ) +
-        "&dskey=" + controller.settings.dskey;
-
-    } else {
-
-        url = currPrefix + WEATHER_SERVER_URL + "/weatherData?loc=" +
-        encodeURIComponent( controller.settings.loc ) +
-        "&dskey=" + controller.settings.dskey;
-
-    }
-
 	$.ajax( {
-		url: url,
+		url: WEATHER_SERVER_URL + "/weatherData?loc=" +
+			encodeURIComponent( controller.settings.loc ),
 		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
 
@@ -2779,23 +2765,12 @@ function updateWeather() {
 
 			currentCoordinates = data.location;
 
-            coordsToLocation( data.location[ 0 ], data.location[ 1 ], function( result ) {
+            weather = data;
+            data.lastUpdated = new Date().getTime();
+            data.providedLocation = controller.settings.loc;
+            localStorage.weatherData = JSON.stringify( data );
 
-                if ( data.weatherProvider === "DarkSky" ) {
-
-                    data.city =  result;
-
-                }
-
-                weather = data;
-                data.lastUpdated = new Date().getTime();
-                data.providedLocation = controller.settings.loc;
-                localStorage.weatherData = JSON.stringify( data );
-
-                finishWeatherUpdate();
-
-            } );
-
+            finishWeatherUpdate();
 		}
 	} );
 }
@@ -4016,7 +3991,7 @@ function showOptions( expandItem ) {
 		( typeof expandItem === "string" && expandItem === "advanced" ? " data-collapsed='false'" : "" ) + ">" +
 		"<legend>" + _( "Advanced" ) + "</legend>";
 
-	if ( checkOSVersion( 219 ) && typeof controller.options.uwt !== "undefined" && typeof controller.settings.dskey !== "undefined" ) {
+	if ( checkOSVersion( 219 ) && typeof controller.options.uwt !== "undefined" && typeof controller.settings.wto === "object" !== "undefined" ) {
 		list += "<div class='ui-field-contain'><label for='dskey'>" + _( "Dark Sky Key" ).replace( "Darksky", "Dark&shy;sky" ) +
 			"<button data-helptext='" +
 				_( "We use OpenWeatherMap normally however with a user provided API key the weather source will switch to Dark Sky." ) +

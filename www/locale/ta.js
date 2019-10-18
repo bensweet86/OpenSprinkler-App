@@ -1,17 +1,5 @@
 {
    "messages" : {
-<<<<<<< HEAD
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-      "If the weather reports any condition suggesting rain, a rain delay is automatically issued using the below set delay duration." : "",
-      "Program Start" : "நிர்ல் தொடக்கம்",
-      "A valid DNS address is required when DHCP is not used" : "",
-      "runs" : "ஓட்டங்கள்",
-      "Tue" : "",
-      "Thu" : "",
-      "None" : "யாதும்.",
-      "DNS Address" : "",
-      "Unable to change password. Please try again." : "",
-=======
       "Password" : "கடவுச்சொல்",
       "Current % Watering" : "",
       "Flow Sensor" : "",
@@ -34,7 +22,6 @@
       "Characters remaining" : "",
       "Repeat Every" : "",
       "Email" : "",
->>>>>>> upstream/master
       "Active State" : "",
       "Auto Reconnect" : "",
       "Server Name" : "",

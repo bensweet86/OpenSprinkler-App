@@ -332,19 +332,6 @@
       "Program Switch" : "",
       "Backup saved on this device" : "Záloha bola uložená na toto zariadenia",
       "Wednesday" : "Streda",
-<<<<<<< HEAD
-      "Remote" : "",
-      "Password cannot be empty" : "Heslo nemôže byť prázdne",
-      "Scanning for OpenSprinkler" : "Vyhľadávam zalievací systém OpenSprinkler",
-      "The selected station is already running or is scheduled to run." : "Vybraná vetva je aktuálne spustená alebo je načasovaná k spusteniu.",
-      "RD" : "",
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-      "Are you sure you want to logout?" : "Skutočne sa chcete odhlásiť?",
-      "Move right" : "Posun vpravo",
-      "Check device password and try again." : "Skontrolujte heslo do zavlažovacieho počítača a skúste to znovu.",
-      "Clear Log Data" : "",
-      "Dutch" : "Nemčina",
-=======
       "Station has been queued" : "Vetva bola pridaná do fronty",
       "Yes" : "Áno",
       "Password changed successfully" : "Heslo bolo úspešne zmenené",
@@ -377,7 +364,6 @@
       "Hungarian" : "Maďarsky",
       "Save Changes to" : "Uložiť zmeny",
       "Backup restored to your device" : "Záloha bola obnovená ",
->>>>>>> upstream/master
       "Time" : "Čas",
       "Remote" : "",
       "High" : "Vysoko",

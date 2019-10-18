@@ -296,21 +296,10 @@
       "Paste your backup here" : "הדבקת הגיבוי כאן",
       "Last Used Program" : "תוכנית אחרונה בשימוש",
       "Update Guide" : "מדריך עידכון",
-<<<<<<< HEAD
-      "The selected station is already running or is scheduled to run." : "התחנה שנבחרה כבר בהפעלה או שתוזמנה להפעלה.",
-      "Warning: The use of odd/even restrictions with the selected interval day may result in the program not running at all." : "אזהרה: השימוש בזוגי/אי זוגי במשתנה הימים עלול לגרות לתוכנית לא לעבוד כלל.",
-      "IP Address" : "כתובת IP",
-      "Server Name" : "שם שרת",
-      "Jun" : "יוני",
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-      "Do you wish to disable extender mode?" : "האם לבטל מצב הרחבה?",
-      "Runtime" : "זמן ריצה",
-=======
       "Controller Reboot" : "איתחול מחשב השקייה",
       "Please re-enter password to try again." : "נא להקליד מחדש סיסמא כדי לנסות שוב",
       "Edit Options" : "עריכת אפשרויות",
       "Contrast" : "ניגודיות",
->>>>>>> upstream/master
       "The passwords don't match. Please try again." : "הסיסמאות לא זהות, נא לנסות שוב.",
       "Error retrieving log data. Please refresh to try again." : "שגיאה בשליפת נתוני לוג. נא לנסות שוב.",
       "Loading" : "נטען",

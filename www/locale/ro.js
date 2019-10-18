@@ -270,15 +270,9 @@
       "Total Runtime" : "",
       "Purchase OpenSprinkler" : "",
       "These options are only for an OpenSprinkler behind a proxy capable of SSL and/or Basic Authentication." : "Aceste opțiuni sunt doar pentru un OpenSprinkler în spatele unui proxy capabil de SSL și / sau autentificare de bază.",
-<<<<<<< HEAD
-      "Hours" : "",
-      "This is open source software: source code and changelog for this application can be found at" : "",
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-=======
       "Error: You have not selected any stations." : "",
       "French" : "",
       "Error: Interval days must be between 2 and 128." : "Eroare: Zilele de interval trebuie sa fie între 2 și 128.",
->>>>>>> upstream/master
       "Adjustment Method" : "Metoda de ajustare",
       "Standard" : "",
       "Norwegian" : "",

@@ -167,14 +167,6 @@
       "Do you want to re-enable system operation?" : "",
       "Are you sure you want to delete program" : "آیا می خواهید برنامه پاک شود؟",
       "Offset (minutes)" : "دقیقه) افست)",
-<<<<<<< HEAD
-      "Please add a site by tapping the 'Add' button in the top right corner." : "",
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-      "Logs have been cleared" : "",
-      "Integrations" : "",
-      "Do you want to turn off rain delay?" : "",
-      "Current % Watering" : "",
-=======
       "Use Auth" : "",
       "Sunrise to Sunset" : "",
       "LOW" : "",
@@ -189,7 +181,6 @@
       "With manual mode turned on, tap a station to toggle it." : "",
       "Use Sunset" : "استفاده از غروب",
       "Table" : "",
->>>>>>> upstream/master
       "Please enter your OpenSprinkler.com password. If you have recently changed your password, you may need to enter your previous password to decrypt the data." : "",
       "Mar" : "",
       "Click here to re-login to OpenSprinkler.com" : "",

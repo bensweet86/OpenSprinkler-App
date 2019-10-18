@@ -445,22 +445,12 @@
       "Zero value excludes the station from the run-once program." : "ጣቢያው ዜሮ  ከተደረገ አንድ ጊዜ እቅድን እስኪድ የሚለው አይሰራም ",
       "remaining" : "የቀረው ",
       "Unable to connect to" : "ማገናኘት አልተቻለም",
-<<<<<<< HEAD
-      "Weather adjustment uses Dark Sky or OpenWeatherMaps data in conjunction with the selected method to adjust the watering percentage." : "",
-      "May" : "ግንቦት",
-      "Image" : "",
-      "Oct" : ".",
-      "Sunset to Sunrise" : "",
-      "Relay Pulse" : "የሪሌይ ምት ",
-      "Server Name" : "",
-=======
       "Options" : "አማራጭ ",
       "Update Guide" : "አንዴት ላድስ",
       "Disable" : "ከልክል",
       "Master On Adjustment" : "",
       "Purchase OpenSprinkler" : "መቆጣጠሪያውን ግዛ",
       "Are you sure you want to " : "እርግጠኛ ነህ ትፈልጋለህ ",
->>>>>>> upstream/master
       "AM" : "",
       "RF" : "",
       "Enable Logging" : "መግባት አስችል ",
