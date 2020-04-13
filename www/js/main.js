@@ -2779,7 +2779,7 @@ function updateWeather() {
 
 			coordsToLocation( data.location[ 0 ], data.location[ 1 ], function( result ) {
 
-				if ( data.weatherProvider === "DarkSky" ) {
+				if ( data.weatherProvider === "DS" ) {
 
 					data.city =  result;
 
@@ -2923,9 +2923,9 @@ function makeAttribution( provider ) {
 
 	var attrib = "<div class='weatherAttribution'>";
 	switch ( provider ) {
-		case "DarkSky":		attrib += "<a href='https://darksky.net/poweredby/' target='_blank'>" + _( "Powered by Dark Sky" ) + "</a>"; break;
+		case "DS":		attrib += "<a href='https://darksky.net/poweredby/' target='_blank'>" + _( "Powered by Dark Sky" ) + "</a>"; break;
 		case "OWM":			attrib += "<a href='https://openweathermap.org/' target='_blank'>" + _( "Powered by OpenWeather" ) + "</a>"; break;
-		case "WUnderground":attrib += "<a href='https://wunderground.com/' target='_blank'>" + _( "Powered by Weather Underground" ) + "</a>"; break;
+		case "WU":attrib += "<a href='https://wunderground.com/' target='_blank'>" + _( "Powered by Weather Underground" ) + "</a>"; break;
 		case "local":		attrib += _( "Powered by your Local PWS" ); break;
 		case "Manual":		attrib += _( "Using manual watering" ); break;
 		default:			attrib += _( "Unrecognised weather provider" ); break;
@@ -2998,7 +2998,7 @@ function makeForecast() {
 			"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
 			"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
 
-    if ( weather.weatherProvider === "DarkSky" ){
+    if ( weather.weatherProvider === "DS" ){
 
         list += "<br>" +
                 "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.currentPrecip ) + "</span>";
@@ -3023,7 +3023,7 @@ function makeForecast() {
 				"<span>" + _( "Sunrise" ) + "</span><span>: " + pad( parseInt( sunrise / 60 ) % 24 ) + ":" + pad( sunrise % 60 ) + "</span> " +
 				"<span>" + _( "Sunset" ) + "</span><span>: " + pad( parseInt( sunset / 60 ) % 24 ) + ":" + pad( sunset % 60 ) + "</span>";
 
-        if ( weather.weatherProvider === "DarkSky" ){
+        if ( weather.weatherProvider === "DS" ){
 
             list += "<br>" +
                     "<span>" + _( "Precip" ) + "</span><span>: " + formatPrecip( weather.forecast[ i ].precip ) + "</span>";
@@ -3825,7 +3825,7 @@ function showOptions( expandItem ) {
 	list += "<div class='ui-field-contain'>" +
 		"<label for='loc'>" + _( "Location" ) + "</label>" +
 		"<button data-mini='true' id='loc' value='" + ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) + "'>" +
-			"<span>" + ( typeof weather === "object" ? weather.city + ( weather.weatherProvider !== "DarkSky" ? ", " + weather.region : "") : ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) ) + "</span>" +
+			"<span>" + ( typeof weather === "object" ? weather.city + ( weather.weatherProvider !== "DS" ? ", " + weather.region : "") : ( controller.settings.loc.trim() === "''" ? _( "Not specified" ) : controller.settings.loc ) ) + "</span>" +
 			"<a class='ui-btn btn-no-border ui-btn-icon-notext ui-icon-delete ui-btn-corner-all clear-loc'></a>" +
 		"</button></div>";
 
