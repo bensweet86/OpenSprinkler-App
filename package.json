@@ -5,7 +5,7 @@
   "phonegap": {
     "id": "1371093"
   },
-  "version": "2.1.9",
+  "version": "2.2.0",
   "description": "Designed to allow intuitive control of the OpenSprinkler irrigation controller.",
   "main": "index.html",
   "scripts": {
@@ -60,6 +60,7 @@
     "lcov-result-merger": "^3.1.0",
     "lodash": "^4.17.13",
     "mocha": "^6.1.4",
+    "po2json": "^0.4.5",
     "xcode": "2.0.0"
   },
   "cordova": {
