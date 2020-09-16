@@ -4,14 +4,14 @@
 /* OpenSprinkler App
  * Copyright (C) 2015 - present, Samer Albahra. All rights reserved.
  *
- * This file is part of the OpenSprinkler project <http://opensprinkler.com>.
+ * This file is part of the OpenSprinkler project <https://opensprinkler.com>.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License version 3 as
  * published by the Free Software Foundation.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 var DEFAULT_WEATHER_SERVER_URL = "https://weather.opensprinkler.com";
@@ -361,6 +361,8 @@ $( document )
 	storage.get( "showDisabled", function( data ) {
 		if ( data.showDisabled && data.showDisabled === "true" ) {
 			$( newpage ).addClass( "show-hidden" ).find( ".station-hidden" ).show();
+		} else {
+			$( newpage ).removeClass( "show-hidden" ).find( ".station-hidden" ).hide();
 		}
 	} );
 } )
